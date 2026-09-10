@@ -1,0 +1,152 @@
+.container {
+    padding: 1rem;
+    background: rgb(255, 253, 253);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.backDropContainer {
+    width: 100%;
+    height: 30vh;
+    background: url("https://images.pexels.com/photos/7130476/pexels-photo-7130476.jpeg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: relative;
+    border-radius: 20px;
+}
+
+/* .backDrop class can also be used for this */
+.backDropContainer>img {
+    width: 10em;
+    height: 10em;
+    object-fit: cover;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -30%;
+    left: 5%;
+    text-align: center;
+}
+
+.rightColumn {
+    flex: 0.2; 
+    border: 1px solid silver; 
+    padding: 0.8rem; 
+    height: fit-content;
+    border-radius: 10px;
+}
+
+.profileContainer_details {
+    padding-top: 4rem;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+}
+
+.card_profileContainer {
+    display: flex;
+}
+
+.card_profileContainer>img {
+    width: 3.4rem;
+    height: auto;
+    height: 3.4rem;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.connectBtn {
+    padding-inline: 0.8rem;
+    padding-block: 0.3rem;
+    background: rgba(3, 93, 183, 0.905);
+    outline: none;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.connectedButton {
+    padding-inline: 0.8rem;
+    padding-block: 0.3rem;
+    border: 1px solid rgba(3, 93, 183, 0.905);
+    outline: none;
+    color: rgba(3, 93, 183, 0.905);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+
+/* WORK HISTORY SECTION IN USER PROFILE PAGE */
+.workHistory {
+    margin-top: 2rem;
+}
+
+.workHistoryContainer {
+    display: flex;
+    gap: 1.4rem;
+    padding-top: 1.4rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.workHistoryCard {
+    min-width: fit-content;
+    padding-inline: 2.5rem;
+    padding-block: 1rem;
+    border-radius: 10px;
+    border: 1px solid silver;
+    box-shadow: 10px 10px 15px rgb(173, 173, 173);
+}
+
+.profileContainer_flex {
+    display: flex;
+    gap: 0.7rem;
+}
+
+
+/* DOWNLOAD PROFILE AS A RESUME PDF ICON */
+.resumeButton {
+    position: relative;
+    cursor: pointer;
+}
+
+.resumeButton::after {
+    content: "Download Resume";
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    background: #333;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.resumeButton:hover::after {
+    opacity: 1;
+}
+
+/* USING MEDIA QUERIES FOR RESPONSIVENESS */
+@media screen and (max-width: 600px){
+
+    .profileContainer_flex{
+        flex-direction: column;
+    }
+
+    .rightColumn {
+        border: none;
+        padding: 0;
+        margin-top: 1rem;
+    }
+}

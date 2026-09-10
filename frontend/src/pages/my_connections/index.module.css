@@ -1,0 +1,61 @@
+.userCard {
+    display: flex;
+    width: 100%;
+    gap: 1.2rem;
+    padding: 1.2rem;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 10px 10px 10px 0px rgba(0, 0, 0, 0.1);
+}
+
+.profilePicture > img {
+    width: 6rem;
+    border-radius: 50%;
+}
+
+.myConnections {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    padding-bottom: 1.5rem;
+    cursor: pointer;
+}
+
+.connectedButton {
+    padding-inline: 0.8rem;
+    padding-block: 0.4rem;
+    border: 1px solid rgba(3, 93, 183, 0.905);
+    outline: none;
+    color: rgb(0, 65, 130);
+    background-color: white;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 18px;
+    font-weight: 500;
+}
+
+.connectedButton:hover {
+    box-shadow: 0 0 0 1px rgba(3, 93, 183, 0.905);
+    background-color: rgb(218, 241, 255);
+}
+
+.rejectButton {
+    border: none;
+    background: none;
+    font-size: 15px;
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 400;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.rejectButton:hover {
+    background: rgb(214, 214, 214);
+    color: black;
+    border-radius: 10px;
+    
+}
+
+
+

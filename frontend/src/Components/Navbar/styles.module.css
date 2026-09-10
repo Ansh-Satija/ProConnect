@@ -1,0 +1,32 @@
+.container {
+    padding: 1.2rem;
+
+}
+
+.title {
+     background: linear-gradient(45deg, #6C2BD9, #d119d1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.navBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navBarOptionContainer {
+    display: flex;
+}
+
+.buttonJoin {
+    background: #d119d1;
+    border-radius: 1.6rem;
+    padding-block: 0.6rem;
+    padding-inline: 1.2rem;
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: bold;
+}

@@ -1,0 +1,56 @@
+POST http://localhost:8080/register
+Content-Type: application/json
+
+{
+    "username":"demo",
+    "password":"demo",
+    "email":"demo@gmail.com",
+    "name":"demo"
+}
+
+###
+
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+    "email":"test@gmail.com",
+    "password":"test"
+}
+
+###
+
+GET http://localhost:8080/get_user_and_profile
+Content-Type: application/json
+
+{
+    "token": "10afbbe4ae4d389646afa5cd50b58657459769ca2d182d9a859f196402b23348"
+}
+
+###
+POST http://localhost:8080/update_profile_data
+Content-Type: application/json 
+
+{
+    "token": "2839c64803ec07e3fd16e6ba26a34459bc8cf3a9e5d897651d8faf54b4bcb1da",
+    "bio": "Hi, I am Rahul | Delhi",
+    "currentPost": "CTO",
+    "pastWork": [
+        {
+            "company": "Microsoft",
+            "position": "CTO",
+            "years": "2+"
+        }
+    ],
+
+    "education": [
+        {
+            "school": "IIT",
+            "degree": "B.Tech",
+            "fieldOfStudy": "CSE" 
+        }
+    ]
+}
+
+###
+GET http://localhost:8080/user/get_all_users
