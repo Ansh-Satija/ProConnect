@@ -261,13 +261,13 @@ export const sendConnectionRequest = async (req, res) => {
 
 
     try {
-        const user = await User.findOne({ token });
+        const user = await User.findOne({ token });  // USER WHO SENT THE CONNECTION REQUEST
 
         if (!user) {
             res.status(404).json({ message: "User Not Found" });
         }
 
-        const connectionUser = await User.findOne({ _id: connectionId })
+        const connectionUser = await User.findOne({ _id: connectionId })  // USER WHO RECEIVED THE CONNECTION REQUEST
 
         if (!connectionUser) {
             return res.status(404).json({ message: "Connection User Not Found" });
@@ -395,5 +395,27 @@ export const getUserProfileAndUserBasedOnUsername = async (req, res) => {
     }
     catch (err) {
         return res.status(500).json({ message: err.message })
+    }
+}
+
+// GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT (BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION)
+export const getSuggestedUsers = async (req, res) => {
+
+    try {
+        const { token } = req.query;
+
+        const currentUser = await User.findOne({ token });
+
+        if (!currentUser) {
+            return res.status(404).json({ message: "User Not Found" });
+        }
+
+        const users = await User.find({ _id: { $ne: currentUser._id } })
+            .select("name username profilePicture");
+
+        return res.json({ users });
+    }
+    catch(err){
+        return res.status(500).json({message: err.message})
     }
 }

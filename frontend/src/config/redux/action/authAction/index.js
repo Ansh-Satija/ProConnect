@@ -97,8 +97,8 @@ export const sendConnectionRequest = createAsyncThunk(
 
         try{
             const response = await clientServer.post("/user/send_connection_request", {
-                token: user.token,
-                connectionId: user.user_id
+                token: user.token, //ID OF SENDER OF REQUEST
+                connectionId: user.user_id //ID OF RECEIVER OF REQUEST
             });
 
             thunkAPI.dispatch(getConnectionRequest({token: user.token}))
@@ -170,6 +170,27 @@ export const acceptConnection = createAsyncThunk(
         }
         catch(err){
             return thunkAPI.rejectWithValue(err.response.data.message)
+        }
+    }
+)
+
+
+// TO GET LIST OF ALL SUGGESTED USERS FOR "BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW" SECTION IN RIGHT SIDEBAR OF DASHBOARDLAYOUT
+export const getSuggestedUsers = createAsyncThunk(
+    "user/getSuggestedUsers",
+    async (user, thunkAPI) => {
+
+        try{
+            const response = await clientServer.get("/user/get_suggested_users", {
+                params: {
+                    token: user.token
+                }
+            })
+
+            return thunkAPI.fulfillWithValue(response.data.users)
+        }
+        catch(err){
+            return thunkAPI.rejectWithValue(err.response?.data)
         }
     }
 )

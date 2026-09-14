@@ -4,6 +4,8 @@ import styles from "./index.module.css"
 import { useRouter } from 'next/router'
 import { setTokenIsThere } from '@/config/redux/reducer/authReducer';
 import { useDispatch, useSelector } from 'react-redux';
+import { getSuggestedUsers } from '@/config/redux/action/authAction';
+import { BASE_URL } from '@/config';
 
 export default function DashboardLayout({ children }) {
 
@@ -20,6 +22,17 @@ export default function DashboardLayout({ children }) {
     }
     dispatch(setTokenIsThere());
   }, [])
+
+  // FETCH SUGGESTED USERS DATA FROM REDUX STORE BY DISPATCHING THIS ACTION (FOR RIGHT SIDEBAR)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if(token){
+      dispatch(getSuggestedUsers({token}))
+    }
+  }, [dispatch])
+
+
 
   return (
     <div>
@@ -81,17 +94,31 @@ export default function DashboardLayout({ children }) {
             {children}
           </div>
 
-          {/* RIGHT SIDE OF PAGE - TOP PROFILES SECTION */}
+          {/* RIGHT SIDE OF PAGE - BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION */}
           <div className={styles.homeContainer_extraContainer}>
 
-            <h3>Top Profiles</h3>
+            <h3>Build Your Network</h3>
 
-            {authState.all_profiles_fetched && authState.all_users?.map((profile) => {
+            <p>People You May Know</p>
+
+            {authState.suggestedUsers?.map((user) => {
 
               return (
-                <div key={profile._id} className={styles.extraContainer_profile}>
+                <div key={user._id} className={styles.suggestedProfile}>
 
-                  <p>{profile?.userId?.name}</p>
+                  <img src={`${BASE_URL}/${user.profilePicture}`} alt="Profile Picture" />
+
+                  <div>
+                    <h4>{user.name}</h4>
+                    <p>@{user.username}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      
+                    }}
+                  >Connect</button>
+
                 </div>
               )
 

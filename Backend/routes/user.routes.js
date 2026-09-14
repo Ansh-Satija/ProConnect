@@ -3,7 +3,8 @@ import { Router } from "express"
 // IMPORT ALL CONTROLLER FUNCTIONS FROM USER.CONTROLLER.JS BEFORE USING THEM AS ROUTE HANDLERS IN THIS FILE
 import { register, login, uploadProfilePicture, updateUserProfile, getUserAndProfile, updateProfileData, getAllUserProfiles,
      downloadProfile, sendConnectionRequest, getMyConnectionRequests, whatAreMyConnections, acceptConnectionRequest,
-     getUserProfileAndUserBasedOnUsername } from "../controllers/user.controller.js";
+     getUserProfileAndUserBasedOnUsername, 
+     getSuggestedUsers} from "../controllers/user.controller.js";
 
 import multer from "multer"
 import { diskStorage } from "multer";
@@ -59,6 +60,9 @@ router.route("/user/accept_connection_request").post(acceptConnectionRequest)
 
 // FOR "/DISCOVER" PAGE - TO FETCH USER PROFILE DETAILS FROM DB USING USERNAME
 router.route("/user/get_profile_based_on_username").get(getUserProfileAndUserBasedOnUsername)
+
+// GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT 
+router.route("/user/get_suggested_users").get(getSuggestedUsers)
 
 
 

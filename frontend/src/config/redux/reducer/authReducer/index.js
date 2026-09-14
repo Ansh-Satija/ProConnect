@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAboutUser, getAllUsers, getConnectionRequest, getMyConnectionRequests, loginUser, registerUser } from "../../action/authAction";
+import { getAboutUser, getAllUsers, getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, loginUser, registerUser } from "../../action/authAction";
 
 // ALL STATE VARIABLES BEING USED IN THE PROJECT FOR AUTHENTICATION, STORED IN REDUX STORE
 const initialState = {
@@ -14,7 +14,8 @@ const initialState = {
     connections: [], // STORES LIST OF ALL USERS WHOM CURRENT LOGGED IN USER SENT CONNECTION REQUEST
     connectionRequest: [], // LIST OF ALL USER WHO SENT REQUEST TO CURRENT LOGGED IN USER
     all_users: [],
-    all_profiles_fetched: false
+    all_profiles_fetched: false,
+    suggestedUsers: []
 };
 
 const authSlice = createSlice({
@@ -116,6 +117,12 @@ const authSlice = createSlice({
 
             .addCase(getMyConnectionRequests.rejected, (state, action) => {
                 state.message = action.payload
+            })
+
+            // STORE SUGGESTED USERS DATA IN REDUX STORE (FOR BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION IN RIGHT
+            // SIDEBAR OF DASHBOARDLAYOUT)
+            .addCase(getSuggestedUsers.fulfilled, (state, action) => {
+                state.suggestedUsers = action.payload
             })
     }
 });
