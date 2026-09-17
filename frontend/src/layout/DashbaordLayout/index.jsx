@@ -4,7 +4,7 @@ import styles from "./index.module.css"
 import { useRouter } from 'next/router'
 import { setTokenIsThere } from '@/config/redux/reducer/authReducer';
 import { useDispatch, useSelector } from 'react-redux';
-import { getSuggestedUsers } from '@/config/redux/action/authAction';
+import { getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, sendConnectionRequest } from '@/config/redux/action/authAction';
 import { BASE_URL } from '@/config';
 
 export default function DashboardLayout({ children }) {
@@ -23,16 +23,97 @@ export default function DashboardLayout({ children }) {
     dispatch(setTokenIsThere());
   }, [])
 
-  // FETCH SUGGESTED USERS DATA FROM REDUX STORE BY DISPATCHING THIS ACTION (FOR RIGHT SIDEBAR)
+  // FETCH SUGGESTED USERS DATA AND CONNECTIONS FROM REDUX STORE BY DISPATCHING THESE ACTIONS (FOR RIGHT SIDEBAR)
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if(token){
-      dispatch(getSuggestedUsers({token}))
+    if (token) {
+      // FOR SUGGESTED USERS DATA - 
+      dispatch(getSuggestedUsers({ token }));
+      // FOR CONNECTION DATA - 
+      dispatch(getConnectionRequest({ token }));
+      dispatch(getMyConnectionRequests({ token }))
     }
   }, [dispatch])
 
+  // FUNCTION TO DETERMINE THE "CONNECT" (CONNECT/ PENDING/ CONNECTED/ RECEIVED) BTN'S STATE IN "BUILD YOUR NETWORK" SECTION 
+  const getConnectionStatus = (userId) => {
 
+    // Did I (LOGGED-IN USER) send this user a request?
+    const sentRequest = authState.connections?.find(
+      request => request.connectionId?._id === userId
+    );
+
+    if (sentRequest) { // IF REQUEST ALREADY SENT - CHECK IF HE ACCEPTED IT OR NOT AND DISPLAY BUTTON ACCORDINGLY
+
+      if (sentRequest.status_accepted === true) {
+        return {
+          status: "connected",
+          requestId: sentRequest._id
+        }
+      }
+      if (sentRequest.status_accepted === null) {
+        return {
+          status: "pending",
+          requestId: sentRequest._id
+        }
+      }
+    }
+
+    // Did this user send me a request?
+    const receivedRequest = authState.connectionRequest?.find(
+      request => request.userId?._id === userId
+    );
+
+    if (receivedRequest) { // IF LOGGED-IN USER RECEIVED THE REQUEST - CHECK IF HE ACCEPTED IT OR NOT AND DISPLAY BTN ACCORDINGLY
+
+      if (receivedRequest.status_accepted === true) {
+        return {
+          status: "connected",
+          requestId: receivedRequest._id
+        };
+      }
+      if (receivedRequest.status_accepted === null) {
+        return {
+          status: "received",
+          requestId: receivedRequest._id
+        };
+      }
+    }
+    // No relationship exists I.E. NO REQUEST SENT BY A->B OR B->A (A = LOGGED-IN USER, B = OTHER USER)
+    // TO SEND NEW REQUEST
+    return {
+      status: "connect",
+      requestId: null
+    };
+  };
+
+  // (FOR RIGHT SIDEBAR) - FUNCTION TO SEND NEW CONNECTION REQUEST (IF NO CONNECTION EXISTS B/W LOGGED IN USER AND THE OTHER USER
+  //  IN "BUILD YOUR NETWORK" SECTION) WHEN LOGGED-IN USER CLICKS "CONNECT" FOR ANY OTHER USER'S PROFILE IN RIGHT SIDEBAR
+  const handleConnect = (userId) => {
+
+    const token = localStorage.getItem("token");
+
+    dispatch(
+      sendConnectionRequest({
+        token,
+        user_id: userId
+      })
+    );
+  };
+
+  const handleAccept = (requestId) => {
+
+    const token = localStorage.getItem("token");
+
+    dispatch(
+      acceptConnection({
+        token,
+        connectionId: requestId,
+        action: "accept"
+      })
+    );
+  };
 
   return (
     <div>
@@ -103,26 +184,62 @@ export default function DashboardLayout({ children }) {
 
             {authState.suggestedUsers?.map((user) => {
 
-              return (
-                <div key={user._id} className={styles.suggestedProfile}>
+              const connection = getConnectionStatus(user._id);
 
-                  <img src={`${BASE_URL}/${user.profilePicture}`} alt="Profile Picture" />
+              return (
+                <div
+                  key={user._id}
+                  className={styles.suggestedProfile}
+                >
+
+                  <img
+                    src={`${BASE_URL}/${user.profilePicture}`}
+                    alt="Profile Picture"
+                  />
 
                   <div>
                     <h4>{user.name}</h4>
                     <p>@{user.username}</p>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      
-                    }}
-                  >Connect</button>
+                  {connection.status === "connect" && (
+                    <button
+                      className={styles.connectButton}
+                      onClick={() => handleConnect(user._id)}
+                    >
+                      Connect
+                    </button>
+                  )}
+
+                  {connection.status === "pending" && (
+                    <button
+                      className={styles.pendingButton}
+                      disabled
+                    >
+                      Pending
+                    </button>
+                  )}
+
+                  {connection.status === "connected" && (
+                    <button
+                      className={styles.connectedButton}
+                      disabled
+                    >
+                      Connected
+                    </button>
+                  )}
+
+                  {connection.status === "received" && (
+                    <button
+                      className={styles.acceptButton}
+                      onClick={() => handleAccept(connection.requestId)}
+                    >
+                      Accept
+                    </button>
+                  )}
 
                 </div>
-              )
-
-
+              );
             })}
           </div>
 

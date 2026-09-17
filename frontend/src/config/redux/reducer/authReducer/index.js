@@ -103,6 +103,8 @@ const authSlice = createSlice({
             })
 
             // FOR CONNECTION REQUEST FUNCTIONALITY
+
+            // 'CONNECTIONS' ARRAY HAS LIST OF ALL USERS WHOME LOGGED IN USER SENT REQUEST TO 
             .addCase(getConnectionRequest.fulfilled, (state, action) => {
                 state.connections = action.payload
             })
@@ -111,6 +113,7 @@ const authSlice = createSlice({
                 state.message = action.payload
             })
 
+            // 'CONNECTIONREQUEST' ARRAY HAS LIST OF ALL USER WHO SENT REQUEST TO LOGGED IN USER
             .addCase(getMyConnectionRequests.fulfilled, (state, action) => {
                 state.connectionRequest = action.payload
             })

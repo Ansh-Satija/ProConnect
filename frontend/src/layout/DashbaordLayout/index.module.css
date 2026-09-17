@@ -66,10 +66,6 @@
 
 /* FOR RESPONSIVENESS - USING MEDIA QUERIES */
 @media only screen and (max-width: 600px) {
-    .homeContainer_extraContainer {
-        display: none;
-    }
-
     .homeContainer {
         display: block;
     }
@@ -85,12 +81,52 @@
     .homeContainer_feedContainer {
         padding-bottom: 8vh;
     }
+
+    .homeContainer_extraContainer {
+        display: flex;
+        border-left: none;
+        border-top: 1px solid rgb(222, 222, 222);
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+
+    .suggestedProfile {
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .suggestedProfile img {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .suggestedProfile div {
+        min-width: 0;
+    }
+
+    .suggestedProfile h4,
+    .suggestedProfile p {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .connectButton,
+    .pendingButton,
+    .connectedButton,
+    .acceptButton {
+        flex-shrink: 0;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+    }
 }
 
 /* RIGHT SIDEBAR - BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION */
 .homeContainer_extraContainer {
     border-left: 1px solid rgb(222, 222, 222);
     padding-left: 1.2rem;
+    padding-right: 1rem;
 
     display: flex;
     flex-direction: column;
@@ -122,7 +158,20 @@
     color: #666
 }
 
-.suggestedProfile button {
+/* .suggestedProfile button {
+    margin-left: auto;
+    border: 1px solid rgba(3, 93, 183, 0.905);
+    background: white;
+    color: rgba(3, 93, 183, 0.905);
+    border-radius: 1rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+} */
+
+.suggestedProfile button:hover {
+    background: rgba(195, 227, 253, 0.905);
+}
+.connectButton {
     margin-left: auto;
     border: 1px solid rgba(3, 93, 183, 0.905);
     background: white;
@@ -132,6 +181,32 @@
     cursor: pointer;
 }
 
-.suggestedProfile button:hover {
-    background: rgba(195, 227, 253, 0.905);
+.pendingButton {
+    margin-left: auto;
+    border: 1px solid #999;
+    background: #f3f3f3;
+    color: #666;
+    border-radius: 1rem;
+    padding: 0.4rem 0.8rem;
+    cursor: default;
+}
+
+.connectedButton {
+    margin-left: auto;
+    border: 1px solid #287a28;
+    background: #e7f3e7;
+    color: #287a28;
+    border-radius: 1rem;
+    padding: 0.4rem 0.8rem;
+    cursor: default;
+}
+
+.acceptButton {
+    margin-left: auto;
+    border: 1px solid rgba(3, 93, 183, 0.905);
+    background: rgba(3, 93, 183, 0.905);
+    color: white;
+    border-radius: 1rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
 }
