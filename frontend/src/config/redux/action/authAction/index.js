@@ -194,3 +194,24 @@ export const getSuggestedUsers = createAsyncThunk(
         }
     }
 )
+
+// FOR SEARCH BAR: TO FETCH DETAILS OF SEARCHED USERS FROM DB
+export const searchUsers = createAsyncThunk(
+    "user/searchUsers",
+    async (query, thunkAPI) => {
+
+        try{
+            const response = await clientServer.get("/user/search_users", {
+                params: {
+                    query
+                }
+            });
+
+            return thunkAPI.fulfillWithValue(response.data.users)
+        }
+        catch(err){
+            return thunkAPI.rejectWithValue(err.response?.data?.message)
+        }
+
+    }
+)

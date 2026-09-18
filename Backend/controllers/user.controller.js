@@ -419,3 +419,31 @@ export const getSuggestedUsers = async (req, res) => {
         return res.status(500).json({message: err.message})
     }
 }
+
+// FOR SEARCHBAR: TO FIND A USER BY NAME/ USERNAME
+export const searchUsers = async (req,res) => {
+
+    try{
+
+        const {query} = req.query;
+
+        if(!query){
+            return res.json({
+                users: []
+            })
+        }
+
+        const users = await User.find({
+            $or: [
+                {name: {$regex: query, $options: "i"}},
+                {username: {$regex: query, $options: "i"}}
+            ]
+        }).select("name username profilePicture");
+
+
+        return res.json({users})
+    }
+    catch(err){
+        return res.status(500).json({message: err.message})
+    }
+}

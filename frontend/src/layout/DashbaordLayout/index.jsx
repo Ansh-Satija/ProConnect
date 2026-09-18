@@ -4,7 +4,7 @@ import styles from "./index.module.css"
 import { useRouter } from 'next/router'
 import { setTokenIsThere } from '@/config/redux/reducer/authReducer';
 import { useDispatch, useSelector } from 'react-redux';
-import { getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, sendConnectionRequest } from '@/config/redux/action/authAction';
+import { acceptConnection, getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, sendConnectionRequest } from '@/config/redux/action/authAction';
 import { BASE_URL } from '@/config';
 
 export default function DashboardLayout({ children }) {
@@ -190,53 +190,80 @@ export default function DashboardLayout({ children }) {
                 <div
                   key={user._id}
                   className={styles.suggestedProfile}
+                  onClick={() => {
+                    router.push(`/view_profile/${user.username}`)
+                  }}
                 >
 
+                  {/* OPEN THE OTHER USERS PROFILE PAGE WHEN LOGGED-IN USERS CLICKS ON DP OR NAME FROM BUILD YOUR NETWORK SECTION */}
                   <img
                     src={`${BASE_URL}/${user.profilePicture}`}
                     alt="Profile Picture"
+                  // className={styles.userDetails}
+                  // onClick={() => {
+                  //   router.push(`/view_profile/${user.username}`)
+                  // }}
                   />
 
                   <div>
-                    <h4>{user.name}</h4>
+                    <h4 className={styles.userDetails}>
+                      {user.name}
+                    </h4>
                     <p>@{user.username}</p>
                   </div>
 
-                  {connection.status === "connect" && (
-                    <button
-                      className={styles.connectButton}
-                      onClick={() => handleConnect(user._id)}
-                    >
-                      Connect
-                    </button>
-                  )}
+                  {
+                    connection.status === "connect" && (
+                      <button
+                        className={styles.connectButton}
+                        onClick={(e) => {
+                          handleConnect(user._id)
+                          e.stopPropagation()
+                        }}
+                      >
+                        Connect
+                      </button>
+                    )
+                  }
 
-                  {connection.status === "pending" && (
-                    <button
-                      className={styles.pendingButton}
-                      disabled
-                    >
-                      Pending
-                    </button>
-                  )}
+                  {
+                    connection.status === "pending" && (
+                      <button
+                        className={styles.pendingButton}
+                        disabled
+                        onClick={(e) => e.stopPropagation}
+                      >
+                        Pending
+                      </button>
+                    )
+                  }
 
-                  {connection.status === "connected" && (
-                    <button
-                      className={styles.connectedButton}
-                      disabled
-                    >
-                      Connected
-                    </button>
-                  )}
+                  {
+                    connection.status === "connected" && (
+                      <button
+                        className={styles.connectedButton}
+                        disabled
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Connected
+                      </button>
+                    )
+                  }
 
-                  {connection.status === "received" && (
-                    <button
-                      className={styles.acceptButton}
-                      onClick={() => handleAccept(connection.requestId)}
-                    >
-                      Accept
-                    </button>
-                  )}
+                  {
+                    connection.status === "received" && (
+                      <button
+                        className={styles.acceptButton}
+                        onClick={(e) => {
+                          handleAccept(connection.requestId)
+                          e.stopPropagation()
+                        }}
+                      
+                      >
+                        Accept
+                      </button>
+                    )
+                  }
 
                 </div>
               );
@@ -277,7 +304,7 @@ export default function DashboardLayout({ children }) {
         </div>
 
       </div>
-    </div>
+    </div >
   )
 }
 

@@ -168,9 +168,6 @@
     cursor: pointer;
 } */
 
-.suggestedProfile button:hover {
-    background: rgba(195, 227, 253, 0.905);
-}
 .connectButton {
     margin-left: auto;
     border: 1px solid rgba(3, 93, 183, 0.905);
@@ -179,6 +176,10 @@
     border-radius: 1rem;
     padding: 0.4rem 0.8rem;
     cursor: pointer;
+}
+
+.connectButton:hover {
+    background: rgba(195, 227, 253, 0.905);
 }
 
 .pendingButton {
@@ -208,5 +209,15 @@
     color: white;
     border-radius: 1rem;
     padding: 0.4rem 0.8rem;
+    cursor: pointer;
+}
+
+.userDetails:hover {
+    color: rgb(54, 148, 255);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.suggestedProfile:hover {
     cursor: pointer;
 }

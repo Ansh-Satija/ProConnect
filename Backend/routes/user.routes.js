@@ -4,7 +4,7 @@ import { Router } from "express"
 import { register, login, uploadProfilePicture, updateUserProfile, getUserAndProfile, updateProfileData, getAllUserProfiles,
      downloadProfile, sendConnectionRequest, getMyConnectionRequests, whatAreMyConnections, acceptConnectionRequest,
      getUserProfileAndUserBasedOnUsername, 
-     getSuggestedUsers} from "../controllers/user.controller.js";
+     getSuggestedUsers, searchUsers} from "../controllers/user.controller.js";
 
 import multer from "multer"
 import { diskStorage } from "multer";
@@ -64,6 +64,8 @@ router.route("/user/get_profile_based_on_username").get(getUserProfileAndUserBas
 // GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT 
 router.route("/user/get_suggested_users").get(getSuggestedUsers)
 
+// FOR SEARCH BAR: TO SEARCH A USER BY NAME/ USERNAME
+router.route("/user/search_users").get(searchUsers)
 
 
 export default router;

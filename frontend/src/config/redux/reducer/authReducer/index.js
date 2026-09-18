@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAboutUser, getAllUsers, getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, loginUser, registerUser } from "../../action/authAction";
+import { getAboutUser, getAllUsers, getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, loginUser, registerUser, searchUsers } from "../../action/authAction";
 
 // ALL STATE VARIABLES BEING USED IN THE PROJECT FOR AUTHENTICATION, STORED IN REDUX STORE
 const initialState = {
@@ -15,7 +15,8 @@ const initialState = {
     connectionRequest: [], // LIST OF ALL USER WHO SENT REQUEST TO CURRENT LOGGED IN USER
     all_users: [],
     all_profiles_fetched: false,
-    suggestedUsers: []
+    suggestedUsers: [],
+    searchResults: []
 };
 
 const authSlice = createSlice({
@@ -126,6 +127,11 @@ const authSlice = createSlice({
             // SIDEBAR OF DASHBOARDLAYOUT)
             .addCase(getSuggestedUsers.fulfilled, (state, action) => {
                 state.suggestedUsers = action.payload
+            })
+
+            // FOR SEARCH BAR: IN /DISCOVER PAGE
+            .addCase(searchUsers.fulfilled, (state, action) => {
+                state.searchResults = action.payload;
             })
     }
 });
