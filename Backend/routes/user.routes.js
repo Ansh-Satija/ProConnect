@@ -9,6 +9,9 @@ import { register, login, uploadProfilePicture, updateUserProfile, getUserAndPro
 import multer from "multer"
 import { diskStorage } from "multer";
 
+// IMPORT AUTH MIDDLEWARE FUNCTION - 
+import {authenticateUser} from "../middlewares/auth.middleware.js";
+
 const router = Router();
 
 // SETUP MULTER FOR PROFILE PICTURE FEATURE
@@ -25,44 +28,47 @@ const upload = multer({ storage: storage });
 
 // DEFINES API ENDPOINT(OR ROUTE) TO UPDATE USER'S PROFILE PICTURE
 router.route("/update_profile_picture")
-    .post(upload.single('profile_picture'), uploadProfilePicture);
+    .post(upload.single('profile_picture'), 
+    authenticateUser, 
+    uploadProfilePicture
+);
 
 
 router.route('/register').post(register);
 router.route('/login').post(login);
 
 // API ENDPOINT(OR ROUTE) TO UPDATE USERNAME AND EMAIL
-router.route('/user_update').post(updateUserProfile);
+router.route('/user_update').post(authenticateUser, updateUserProfile);
 
 // TO FETCH DETAILS FROM USER AND PROFILE DOCS IN DB FOR A USER
-router.route("/get_user_and_profile").get(getUserAndProfile)
+router.route("/get_user_and_profile").get(authenticateUser, getUserAndProfile)
 
 // TO UPDATE PROFILE DOC'S DETAILS (LIKE BIO, EDUCATION, WORK ETC.) FOR A USER
-router.route("/update_profile_data").post(updateProfileData)
+router.route("/update_profile_data").post(authenticateUser, updateProfileData)
 
 // GET ALL USER PROFILES (DOCS) CREATED IN DB
-router.route("/user/get_all_users").get(getAllUserProfiles)
+router.route("/user/get_all_users").get(getAllUserProfiles, authenticateUser)
 
 // DOWNLOAD USER'S PROFILE DATA AS A PDF (RESUME)
-router.route("/user/download_resume").get(downloadProfile)
+router.route("/user/download_resume").get(authenticateUser, downloadProfile)
 
 
 // CONNECTION REQUEST FUNCTIONALITY :- 
 // 1. TO SEND A CONNECTION REQUEST FROM LOGGED IN USER TO ANOTHER USER 
-router.route("/user/send_connection_request").post(sendConnectionRequest)
+router.route("/user/send_connection_request").post(authenticateUser, sendConnectionRequest)
 // 2. TO DISPLAY ALL CONNECTION REQUESTS SENT BY LOGGED IN USER TO OTHER USERS
-router.route("/user/get_connection_requests").get(getMyConnectionRequests)
+router.route("/user/get_connection_requests").get(authenticateUser, getMyConnectionRequests)
 // 3. TO DISPLAY ALL CONNECTION REQUESTS RECEIVED BY LOGGED IN USER
-router.route("/user/user_connection_request").get(whatAreMyConnections)
+router.route("/user/user_connection_request").get(authenticateUser, whatAreMyConnections)
 // 4. TO ACCEPT OR REJECT A CONNECTION REQUEST
-router.route("/user/accept_connection_request").post(acceptConnectionRequest)
+router.route("/user/accept_connection_request").post(authenticateUser, acceptConnectionRequest)
 
 
 // FOR "/DISCOVER" PAGE - TO FETCH USER PROFILE DETAILS FROM DB USING USERNAME
 router.route("/user/get_profile_based_on_username").get(getUserProfileAndUserBasedOnUsername)
 
 // GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT 
-router.route("/user/get_suggested_users").get(getSuggestedUsers)
+router.route("/user/get_suggested_users").get(authenticateUser, getSuggestedUsers)
 
 // FOR SEARCH BAR: TO SEARCH A USER BY NAME/ USERNAME
 router.route("/user/search_users").get(searchUsers)

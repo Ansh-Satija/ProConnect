@@ -17,12 +17,23 @@ export const register = async (req, res) => {
         }
 
         //CHECK IF USER ALREADY REGISTERED OR NOT
-        const user = await User.findOne({ email });
+        const emailExists = await User.findOne({ email });
 
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
+        if (emailExists) {
+            return res.status(400).json({
+                message: "Email already exists"
+            });
         }
 
+        const usernameExists = await User.findOne({
+            username: username.trim()
+        });
+
+        if (usernameExists) {
+            return res.status(400).json({
+                message: "Username already exists"
+            });
+        }
         //IF USER NOT ALREADY REGISTERED => (IT IS A NEW USER)
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -89,14 +100,9 @@ export const login = async (req, res) => {
 
 // UPLOAD PROFILE PICTURE FEATURE
 export const uploadProfilePicture = async (req, res) => {
-    const { token } = req.body;
 
     try {
-        const user = await User.findOne({ token: token })
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = req.user;
 
         user.profilePicture = req.file.filename;
 
@@ -113,50 +119,65 @@ export const uploadProfilePicture = async (req, res) => {
 // UPDATE BASIC USER DETAILS (ONLY FOR UPDATING USERNAME AND EMAIL IN THE USER DOC IN DB)
 export const updateUserProfile = async (req, res) => {
     try {
-        const { token, ...newUserData } = req.body;
+        const user = req.user;
 
-        // IDENTIFY THE USER WHO IS MAKING THE REQUEST
-        const user = await User.findOne({ token: token });
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
+        const { name, username, email } = req.body;
 
-        // CHECK IF THE NEW USERNAME, EMAIL GIVEN BY THE USER (FOR UPDATION) IS ALREADY TAKEN OR NOT BY ANOTHER USER
-        const { username, email } = newUserData;
-        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        // Check if username/email are already taken
+        if (username !== undefined || email !== undefined) {
 
-        if (existingUser) {
-            if (String(existingUser._id) !== String(user._id)) {
-                return res.status(400).json({ message: "User Already Exists" });
+            const existingUser = await User.findOne({
+                $or: [
+                    ...(username !== undefined ? [{ username }] : []),
+                    ...(email !== undefined ? [{ email }] : [])
+                ]
+            });
+
+            // Make sure the found user is not the current user
+            if (
+                existingUser &&
+                String(existingUser._id) !== String(user._id)
+            ) {
+                return res.status(400).json({
+                    message: "Username or email already exists"
+                });
             }
         }
 
-        Object.assign(user, newUserData)
+        // Update only fields that were provided
+        if (name !== undefined) {
+            user.name = name.trim();
+        }
+
+        if (username !== undefined) {
+            user.username = username.trim();
+        }
+
+        if (email !== undefined) {
+            user.email = email.trim();
+        }
 
         await user.save();
 
-        return res.json({ message: "User Updated" });
-    }
+        return res.json({
+            message: "User Updated"
+        });
 
-    catch (err) {
-        return res.status(500).json({ message: err.message });
+    } catch (err) {
+        console.log("UPDATE USER ERROR:", err);
+
+        return res.status(500).json({
+            message: err.message
+        });
     }
-}
+};
 
 // TO GET THE PROFILE DETAILS FOR GIVEN USER
 export const getUserAndProfile = async (req, res) => {
     try {
-        const { token } = req.query;
-
-        console.log(`Token: ${token}`)
-
-        const user = await User.findOne({ token: token });
+        const user = req.user;
 
         console.log(user)
-
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
 
         const userProfile = await Profile.findOne({ userId: user._id })
             .populate('userId', 'name email username profilePicture');
@@ -171,27 +192,40 @@ export const getUserAndProfile = async (req, res) => {
 // UPDATE PROFILE DOC'S DETAILS IN DB WITH DATA GIVEN BY USER FROM FRONTEND
 export const updateProfileData = async (req, res) => {
     try {
+        console.log("UPDATE PROFILE CONTROLLER HIT");
+
         const { token, ...newProfileData } = req.body;
 
-        const userProfile = await User.findOne({ token: token });
+        const user = req.user;
 
-        if (!userProfile) {
-            return res.status(404).json({ message: "User Not Found" });
+        const profile_to_update = await Profile.findOne({
+            userId: user._id
+        });
+
+        console.log("PROFILE:", profile_to_update);
+
+        if (!profile_to_update) {
+            return res.status(404).json({
+                message: "Profile Not Found"
+            });
         }
-
-        const profile_to_update = await Profile.findOne({ userId: userProfile._id });
 
         Object.assign(profile_to_update, newProfileData);
 
         await profile_to_update.save();
 
-        return res.json({ message: "Profile Updated" })
-    }
+        return res.json({
+            message: "Profile Updated"
+        });
 
-    catch (err) {
-        res.status(500).json({ message: err.message });
+    } catch (err) {
+        console.log("UPDATE PROFILE ERROR:", err);
+
+        return res.status(500).json({
+            message: err.message
+        });
     }
-}
+};
 
 // GET ALL USER PROFILES PRESENT IN DB (FETCHES ALL DOCS CREATED IN PROFILES COLLECTION TILL NOW)
 export const getAllUserProfiles = async (req, res) => {
@@ -257,17 +291,14 @@ const convertUserDataToPDF = async (userData) => {
 // CONNECTION REQUEST FUNCTIONALITY: TO SEND A CONNECTION REQUEST
 export const sendConnectionRequest = async (req, res) => {
 
-    const { token, connectionId } = req.body;
-
+    const { connectionId } = req.body;  // FRONTEND SENDS THE ID OF USER TO WHOM LOGGED-IN USER IS SENDING THE CONNECTION REQUEST (IN REQ.BODY)
+    // CONNECTIONID = ID OF USER WHO RECEIVES THE CONNECTION REQUEST
 
     try {
-        const user = await User.findOne({ token });  // USER WHO SENT THE CONNECTION REQUEST
 
-        if (!user) {
-            res.status(404).json({ message: "User Not Found" });
-        }
+        const user = req.user; // LOGGED-IN USER WHO SENT THE REQUEST
 
-        const connectionUser = await User.findOne({ _id: connectionId })  // USER WHO RECEIVED THE CONNECTION REQUEST
+        const connectionUser = await User.findOne({ _id: connectionId }) // USER WHO RECEIVED THE CONNECTION REQUEST
 
         if (!connectionUser) {
             return res.status(404).json({ message: "Connection User Not Found" });
@@ -300,14 +331,10 @@ export const sendConnectionRequest = async (req, res) => {
 
 // TO DISPLAY ALL CONNECTION REQUESTS SENT BY CURR LOGGED IN USER 
 export const getMyConnectionRequests = async (req, res) => {
-    const { token } = req.query;
 
     try {
-        const user = await User.findOne({ token });
 
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
+        const user = req.user;
 
         const connections = await ConnectionRequest.find({ userId: user._id })
             .populate('connectionId', 'name username email profilePicture')
@@ -322,17 +349,12 @@ export const getMyConnectionRequests = async (req, res) => {
 
 // TO DISPLAY ALL CONNECTION REQUESTS RECEIVED BY CURR USER
 export const whatAreMyConnections = async (req, res) => {
-    const { token } = req.query;
 
     try {
-        const user = await User.findOne({ token });
+        const user = req.user;       // LOGGED-IN USER WHO RECEIVED ALL REQUESTS
 
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
-
-        const connections = await ConnectionRequest.find({ connectionId: user._id })
-            .populate('userId', 'name username email profilePicture')
+        const connections = await ConnectionRequest.find({ connectionId: user._id }) // SEARCH ALL CONNECTION DOCS AND FILTER ONLY THOSE WHERE CURR LOGGEDIN
+            .populate('userId', 'name username email profilePicture')                // USER IS THE RECEIVER OF REQUEST (CONNECTIONID = ID OF RECEIVER OF REQ)
 
         return res.json(connections);
     }
@@ -344,19 +366,15 @@ export const whatAreMyConnections = async (req, res) => {
 
 // TO ACCEPT OR REJECT A CONNECTION REQUEST
 export const acceptConnectionRequest = async (req, res) => {
-    const { token, requestId, action_type } = req.body;
+    const { requestId, action_type } = req.body;
 
     try {
-        const user = await User.findOne({ token });
+        const user = req.user;
 
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
-
-        const connection = await ConnectionRequest.findOne({ _id: requestId });
+        const connection = await ConnectionRequest.findOne({ _id: requestId, connectionId: user._id });
 
         if (!connection) {
-            return res.status(404).json({ message: "Connection Not Found" })
+            return res.status(404).json({ message: "Connection Request Not Found" })
         }
 
         if (action_type === "accept") {
@@ -389,7 +407,7 @@ export const getUserProfileAndUserBasedOnUsername = async (req, res) => {
         }
 
         const userProfile = await Profile.findOne({ userId: user._id })
-            .populate("userId", "name username email profilePicture")
+            .populate("userId", "name username profilePicture")
 
         return res.json({ "profile": userProfile })
     }
@@ -402,32 +420,31 @@ export const getUserProfileAndUserBasedOnUsername = async (req, res) => {
 export const getSuggestedUsers = async (req, res) => {
 
     try {
-        const { token } = req.query;
+        const currentUser = req.user;
 
-        const currentUser = await User.findOne({ token });
+        const users = await User.find({
+            _id: { $ne: currentUser._id }
+        }).select("name username profilePicture");
 
-        if (!currentUser) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
 
-        const users = await User.find({ _id: { $ne: currentUser._id } })
-            .select("name username profilePicture");
 
         return res.json({ users });
-    }
-    catch(err){
-        return res.status(500).json({message: err.message})
-    }
-}
 
+    } catch (err) {
+
+        return res.status(500).json({
+            message: err.message
+        });
+    }
+};
 // FOR SEARCHBAR: TO FIND A USER BY NAME/ USERNAME
-export const searchUsers = async (req,res) => {
+export const searchUsers = async (req, res) => {
 
-    try{
+    try {
 
-        const {query} = req.query;
+        const { query } = req.query;
 
-        if(!query){
+        if (!query) {
             return res.json({
                 users: []
             })
@@ -435,15 +452,15 @@ export const searchUsers = async (req,res) => {
 
         const users = await User.find({
             $or: [
-                {name: {$regex: query, $options: "i"}},
-                {username: {$regex: query, $options: "i"}}
+                { name: { $regex: query, $options: "i" } },
+                { username: { $regex: query, $options: "i" } }
             ]
         }).select("name username profilePicture");
 
 
-        return res.json({users})
+        return res.json({ users })
     }
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 }

@@ -1,4 +1,5 @@
 import {Router} from "express"
+
 import { activeCheck, createPost, getAllPosts, deletePost, commentPost, getCommentsByPost, deleteComment,
      incrementLikes } from "../controllers/posts.controller.js";
      
@@ -6,6 +7,9 @@ import { activeCheck, createPost, getAllPosts, deletePost, commentPost, getComme
 
 import multer from "multer"
 import { diskStorage } from "multer";
+
+// IMPORT AUTH MIDDLEWARE FUNCTION
+import {authenticateUser} from "../middlewares/auth.middleware.js"
 
 const router = Router();
 
@@ -26,30 +30,30 @@ const upload = multer({storage: storage})
 router.route('/').get(activeCheck);
 
 // CREATE NEW POST 
-router.route("/post").post(upload.single('media'), createPost);
+router.route("/post").post(upload.single('media'), authenticateUser, createPost);
 
 // GET ALL POSTS
 router.route("/posts").get(getAllPosts);
 
 // DELETE A POST (ONLY THE AUTHOR CAN DELETE OWN POST)
-router.route("/delete_post").delete(deletePost);
+router.route("/delete_post").delete(authenticateUser, deletePost);
 
 // <--- ROUTES FOR CRUD OPERATIONS ON COMMENTS UNDER A POST --->
 
 // TO CREATE A COMMENT
-router.route("/comment").post(commentPost);
+router.route("/comment").post(authenticateUser, commentPost);
 
 // TO GET ALL COMMENTS UNDER A POST 
 router.route("/get_comments").get(getCommentsByPost);
 
 // TO DELETE A COMMENT
-router.route("/delete_comment").delete(deleteComment)
+router.route("/delete_comment").delete(authenticateUser, deleteComment)
 
 // TO INCREMENT NUMBER OF LIKES OF A POST
-router.route("/increment_post_like").post(incrementLikes)
+router.route("/increment_post_like").post(authenticateUser, incrementLikes)
 
 // // TO GET ALL COMMENTS CREATED BY CURR LOGGED-IN USER ACROSS ALL POSTS (FUTURE SCOPE)
-// router.route("/get_my_comments").get(getMyComments)
+// router.route("/get_my_comments").get(authenticateUser, getMyComments)
 
 
 export default router

@@ -11,14 +11,9 @@ export const activeCheck = async (req,res) => {
 
 // TO CREATE A NEW POST 
 export const createPost = async (req,res) => {
-    const {token} = req.body;
 
     try{
-        const user = await User.findOne({token});
-
-        if(!user){
-            return res.status(404).json({message: "User Not Found"});
-        }
+        const user = req.user;
 
         const post = new Post({
             userId: user._id,
@@ -41,7 +36,7 @@ export const createPost = async (req,res) => {
 export const getAllPosts = async (req,res) => {
 
     try{
-        const posts = await Post.find().populate('userId', 'name username email profilePicture');
+        const posts = await Post.find().populate('userId', 'name username profilePicture');
 
         return res.json({posts});   
     }
@@ -53,15 +48,11 @@ export const getAllPosts = async (req,res) => {
 
 // TO DELETE A POST (ONLY THE AUTHOR OF THE POST CAN DELETE OWN POST, NOBODY ELSE)
 export const deletePost = async (req,res) => {
-    const {token, post_id} = req.body;
+    const { post_id } = req.body;
 
     try{
         // FIND CURRENTLY LOGGED IN USER'S DOC IN DB TO GET HIS USERID
-        const user = await User.findOne({token}).select("_id");
-
-        if(!user){
-            return res.status(404).json({message: "User Not Found"})
-        }
+        const user = req.user
 
         // FIND POST'S DOC (STORING THE CURRENT POST'S BODY AND AUTHOR DETAILS) IN DB
         const post = await Post.findOne({_id: post_id})
@@ -70,6 +61,7 @@ export const deletePost = async (req,res) => {
             return res.status(404).json({message: "Post Not Found"})
         }
 
+        // AUTHORIZATION - ONLY THE POST'S AUTHOR CAN DELETE HIS OWN POST
         // CHECK IF THE USER TRYING TO DELETE THE POST IS AUTHOR OF THE POST OR NOT
         if(post.userId.toString() !== user._id.toString()){
             return res.status(401).json({message: "Unauthorized"})
@@ -90,14 +82,10 @@ export const deletePost = async (req,res) => {
 
 // CREATE A COMMENT UNDER A POST
 export const commentPost = async (req,res) => {
-    const {token, post_id, commentBody} = req.body;
+    const { post_id, commentBody} = req.body;
 
     try{
-        const user = await User.findOne({token}).select("_id");
-
-        if(!user){
-            res.status(404).json({message: "User Not Found"});
-        }
+        const user = req.user;
 
         const post = await Post.findOne({_id: post_id});
 
@@ -126,7 +114,6 @@ export const commentPost = async (req,res) => {
 export const getCommentsByPost = async (req,res) => {
     const {post_id} = req.query; //NOT REQ.BODY AS IT IS A GET REQUEST NOT POST REQUEST
 
-    console.log("POST_ID", post_id)
     try{
         const post = await Post.findOne({"_id": post_id});
 
@@ -148,13 +135,10 @@ export const getCommentsByPost = async (req,res) => {
 
 // TO DELETE A COMMENT (ONLY AUTHOR OF COMMENT CAN DELETE OWN COMMENT)
 export const deleteComment = async (req,res) => {
-    const {token, comment_id} = req.body;
+    const {comment_id} = req.body;
 
     try{
-        const user = await User.findOne({token});
-        if(!user){ 
-            return res.status(404).json({message: "User Not Found"});
-        }
+        const user = req.user;
 
         const comment = await Comment.findOne({_id: comment_id})
 
@@ -162,6 +146,7 @@ export const deleteComment = async (req,res) => {
             return res.status(404).json({message: "Comment Not Found"})
         }
 
+        // AUTHORIZATION: Only the comment author can delete it
         if(comment.userId.toString() !== user._id.toString()){
             return res.status(401).json({message: "Unauthorized"})
         }
@@ -204,14 +189,9 @@ export const incrementLikes = async (req,res) => {
 
 // // TO GET ALL COMMENTS CREATED BY CURR LOGGED-IN USER ACROSS ALL POSTS (NOT IMPLEMENTED NOW (FUTURE SCOPE))
 // export const getMyComments = async (req,res) => {
-//     const {token} = req.body;
 
 //     try{
-//         const user = await User.findOne({token})
-
-//         if(!user){
-//             return res.status(404).json({message: "User Not Found"});
-//         }
+//         const user = req.user;
 
 //         const comments = await Comment.find({userId: user._id}).populate("postId", "body");
 

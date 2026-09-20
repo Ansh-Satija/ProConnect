@@ -45,8 +45,6 @@ export default function ProfilePage() {
 
 
 
-
-
     // TO FETCH LOGGED-IN USER'S PROFILE DETAILS AND POSTS
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -97,26 +95,47 @@ export default function ProfilePage() {
 
     // EVENT HANDLER FUNCTION TRIGGERED WHEN UPDATE BUTTON (AT END OF PAGE) IS CLICKED - TO SAVE CHANGES MADE BY LOGGED-IN USER IN ANY FIELD OF PROFILE PAGE
     const updateProfileData = async () => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+        try {
+            const token = localStorage.getItem("token");
 
-        await clientServer.post("/user_update", {
-            token,
-            name: userProfile?.userId?.name || ""
-        });
+            console.log("UPDATE BUTTON CLICKED");
+            console.log("TOKEN EXISTS:", !!token);
 
-        await clientServer.post("/update_profile_data", {
-            token,
-            bio: userProfile?.bio || "",
-            currentPost: userProfile?.currentPost || "",
-            pastWork: userProfile?.pastWork || [],
-            education: userProfile?.education || []
-        });
+            if (!token) return;
 
-        dispatch(getAboutUser({
-            token
-        }));
-    }
+            console.log("CALLING /user_update");
+
+            const userResponse = await clientServer.post("/user_update", {
+                token,
+                name: userProfile?.userId?.name || ""
+            });
+
+            console.log("USER UPDATE SUCCESS:", userResponse.data);
+            console.log("CALLING /update_profile_data");
+
+            const profileResponse = await clientServer.post(
+                "/update_profile_data",
+                {
+                    token,
+                    bio: userProfile?.bio || "",
+                    currentPost: userProfile?.currentPost || "",
+                    pastWork: userProfile?.pastWork || [],
+                    education: userProfile?.education || []
+                }
+            );
+
+            console.log("PROFILE UPDATE SUCCESS:", profileResponse.data);
+
+            const result = await dispatch(getAboutUser({ token }));
+
+            console.log("GET ABOUT USER RESULT:", result);
+
+        } catch (err) {
+            console.log("UPDATE ERROR:", err);
+            console.log("STATUS:", err.response?.status);
+            console.log("DATA:", err.response?.data);
+        }
+    };
 
     return (
         <UserLayout>
