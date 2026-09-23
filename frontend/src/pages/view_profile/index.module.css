@@ -29,7 +29,7 @@
 }
 
 .rightColumn {
-    flex: 0.2; 
+    flex: 0.3; 
     border: 1px solid silver; 
     padding: 0.8rem; 
     height: fit-content;
@@ -82,7 +82,7 @@
 
 /* WORK HISTORY SECTION IN USER PROFILE PAGE */
 .workHistory {
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 .workHistoryContainer {

@@ -1,6 +1,7 @@
 import User from "../models/user.model.js"
 import Profile from "../models/profile.models.js"
 import ConnectionRequest from "../models/connections.model.js"
+import Notification from "../models/notification.model.js"
 import bcrypt from "bcrypt"
 import crypto from "crypto"
 
@@ -288,6 +289,8 @@ const convertUserDataToPDF = async (userData) => {
 
 }
 
+// <--- CONNECTION REQUEST CONTROLLERS --->
+
 // CONNECTION REQUEST FUNCTIONALITY: TO SEND A CONNECTION REQUEST
 export const sendConnectionRequest = async (req, res) => {
 
@@ -320,6 +323,15 @@ export const sendConnectionRequest = async (req, res) => {
         })
 
         await request.save();
+
+        // CREATE NEW NOTIFICATION OBJECT TO NOTIFY RECEIVER ABOUT NEW REQUEST - 
+        const notification = new Notification({
+            recipient: connectionUser._id,
+            sender: user._id,
+            type: "CONNECTION_REQUEST"
+        });
+
+        await notification.save();
 
         return res.json({ message: "Request Sent" })
     }
@@ -379,12 +391,22 @@ export const acceptConnectionRequest = async (req, res) => {
 
         if (action_type === "accept") {
             connection.status_accepted = true;
+            await connection.save();
+
+            // CREATE NEW NOTIFICATION = REQUEST ACCEPTED FOR THE ORIGINAL SENDER OF REQUEST
+            const notification = new Notification({
+                recipient: connection.userId,
+                sender: user._id,
+                type: "CONNECTION_ACCEPTED"
+            })
+
+            await notification.save();
         }
         else {
             connection.status_accepted = false;
+            await connection.save();
         }
 
-        await connection.save();
         return res.json({ message: "Request Updated" });
 
     }

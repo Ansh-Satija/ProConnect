@@ -93,7 +93,7 @@ export default function ViewProfilePage({ userProfile }) {
             <div className={styles.profileContainer_flex}>
 
               {/* LEFT SECTION OF USER DETAILS */}
-              <div style={{ flex: "0.8" }}>
+              <div style={{ flex: "0.7" }}>
 
                 <div style={{ display: "flex", width: "fit-content", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
                   <h2>{userProfile.userId.name}</h2>
@@ -152,15 +152,18 @@ export default function ViewProfilePage({ userProfile }) {
                   return (
                     <div key={post._id} className={styles.postCard}>
                       <div className={styles.card}>
+                        <p>{post.body}</p>
+
                         <div className={styles.card_profileContainer}>
 
-                          {post.media !== "" ? <img src={`${BASE_URL}/${post.media}`} /> :
+                          {post.media !== "" ? <img src={`${BASE_URL}/${post.media}`} /> 
+                          :
                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                           }
 
                         </div>
 
-                        <p>{post.body}</p>
+                        
                       </div>
                     </div>
                   )

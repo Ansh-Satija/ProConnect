@@ -25,15 +25,22 @@
 .nameRow {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 1rem;
-    margin-bottom: 0.5rem;
-    max-width: 100%;
+    /* margin-bottom: 0.5rem; */
+   
     min-width: 0;
+}
+
+.nameEdit {
+    field-sizing: content;
+    max-width: 200px;
+    flex-shrink: 0;
 }
 
 
 .rightColumn {
-    flex: 0.32; 
+    flex: 0.3; 
     border: 1px solid silver; 
     padding: 0.8rem; 
     height: fit-content;

@@ -12,9 +12,7 @@ import { resetPostId } from '@/config/redux/reducer/postReducer';
 function Dashboard() {
 
   const router = useRouter();
-
   const dispatch = useDispatch();
-
   const authState = useSelector((state) => state.auth)
 
   // The feed can render before its slice is available (for example, during a
@@ -59,6 +57,22 @@ function Dashboard() {
     dispatch(getAllPosts())
   }
 
+  // TO SCROLL TO A SPECIFIC POST WHEN USER GETS NOTIFICATION THAT SOMEONE HAS LIKED/ COMMENTED ON THEIR POST (FOR LIKE/ COMMENT)
+  const {postId} = router.query;
+  useEffect(() => {
+
+    if(!router.isReady || !postId || posts.length == 0){
+      return;
+    }
+    const postElement = document.getElementById(`post-${postId}`)
+
+    if(postElement){
+      postElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      })
+    }
+  }, [router.isReady, postId, posts])
 
   return (
     <UserLayout>
@@ -105,12 +119,14 @@ function Dashboard() {
             </div>
 
             {/* FEED SECTION - SHOW ALL POSTS */}
-            <div className={styles.postsContainer}>
+            <div 
+              className={styles.postsContainer}
+            >
 
               {posts.filter((post) => post?.userId).map((post) => {
 
                 return (
-                  <div key={post._id} className={styles.singleCard}>
+                  <div key={post._id} id={`post-${post._id}`} className={styles.singleCard}>
 
                     <div className={styles.singleCard_profileContainer}>
 
@@ -165,7 +181,8 @@ function Dashboard() {
                           <div
                             onClick={async () => {
                               await dispatch(incrementPostLike({
-                                post_id: post._id
+                                post_id: post._id,
+                                token: localStorage.getItem("token")
                               }))
                               await dispatch(getAllPosts())
                             }}

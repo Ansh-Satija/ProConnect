@@ -3,6 +3,7 @@ import User from "../models/user.model.js"
 import Profile from "../models/profile.models.js"
 import Post from "../models/posts.model.js"
 import Comment from "../models/comments.model.js"
+import Notification from "../models/notification.model.js"
 
 // TEST ROUTE
 export const activeCheck = async (req,res) => {
@@ -27,7 +28,7 @@ export const createPost = async (req,res) => {
     }
 
     catch(err){
-        res.status(500).json({message: err.message})
+        return res.status(500).json({message: err.message})
     }
 
 }
@@ -42,7 +43,7 @@ export const getAllPosts = async (req,res) => {
     }
 
     catch(err){
-        res.status(500).json({message: err.message});
+        return res.status(500).json({message: err.message});
     }
 }
 
@@ -90,7 +91,7 @@ export const commentPost = async (req,res) => {
         const post = await Post.findOne({_id: post_id});
 
         if(!post){
-            res.status(404).json({message: "Post Not Found"});
+            return res.status(404).json({message: "Post Not Found"});
         }
 
         const comment = new Comment({
@@ -101,12 +102,24 @@ export const commentPost = async (req,res) => {
 
         await comment.save();
 
-        res.status(200).json({message: "New Comment Added"})
+        // NOTIFY AUTHOR OF THE POST WHEN SOMEONE ELSE COMMENTS ON THEIR POST (BUT DON'T NOTIFY AUTHOR WHEN THEY COMMENT ON OWN POST)
+        if(post.userId.toString() != user._id.toString()){
+
+            const notification = new Notification({
+                recipient: post.userId,  // AUTHOR OF THE POST
+                sender: user._id,    // LOGGED-IN USER WHO MADE THE COMMENT
+                type: "COMMENT",
+                post: post._id
+            });
+            await notification.save();
+        }
+
+        return res.status(200).json({message: "New Comment Added"})
 
     }
 
     catch(err){
-        res.status(500).json({message: err.message});
+        return res.status(500).json({message: err.message});
     }
 }
 
@@ -125,11 +138,11 @@ export const getCommentsByPost = async (req,res) => {
         .find({postId: post_id})
         .populate("userId", "name username profilePicture");
 
-        res.json(comments.reverse())
+        return res.json(comments.reverse())
     }
 
     catch(err){
-        res.status(500).json({message: err.message})
+        return res.status(500).json({message: err.message})
     }
 }
 
@@ -157,7 +170,7 @@ export const deleteComment = async (req,res) => {
 
     }
     catch(err){
-        res.status(500).json({message: err.message})
+        return res.status(500).json({message: err.message})
     }
 }
 
@@ -167,21 +180,35 @@ export const incrementLikes = async (req,res) => {
     const {post_id} = req.body;
 
     try{
+
+        const user = req.user;  // USED TO CREATE NEW NOTIFICATION OBJECT
         const post = await Post.findOne({_id: post_id});
 
         if(!post){
             return res.status(404).json({message: "Post Not Found"})
         }
 
-        // IF POST FOUND
+        // IF POST FOUND - INCREMENT LIKES
         post.likes = post.likes + 1;
-
         await post.save();
+
+        // NOTIFY THE AUTHOR THAT THEIR POST HAS BEEN LIKED (BUT DON'T NOTIFY AUTHOR IF AUTHOR LIKES THEIR OWN POST)
+        if(post.userId.toString() !== user._id.toString()){
+
+            const notification = new Notification({
+                recipient: post.userId,
+                sender: user._id,
+                type: "LIKE",
+                post: post._id
+            });
+
+            await notification.save();
+        }
 
         return res.json({message: "Likes Incremented"})
     }
     catch(err){
-        res.status(500).json({message: err.message})
+        return res.status(500).json({message: err.message})
     }
 }
 

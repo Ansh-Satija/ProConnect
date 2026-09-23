@@ -4,7 +4,7 @@
 }
 
 .title {
-     background: linear-gradient(45deg, #6C2BD9, #d119d1);
+    background: linear-gradient(45deg, #6C2BD9, #d119d1);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -20,6 +20,15 @@
     display: flex;
 }
 
+.navbarOption {
+    font-weight: bold;
+    cursor: pointer;
+    color: #5a5a5a;
+}
+.navbarOption:hover {
+    color: black;
+}
+
 .buttonJoin {
     background: #d119d1;
     border-radius: 1.6rem;
@@ -29,4 +38,38 @@
     font-size: 0.8rem;
     cursor: pointer;
     font-weight: bold;
+}
+
+.notificationWrapper {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 2rem;
+    justify-content: center;
+}
+
+.bell {
+    font-size: 1rem;
+}
+
+
+/* THIS IS THE STYLE FOR UNREAD COUNT NUMBER */
+.notificationCount {
+    position: absolute;
+    top: -15px;
+    right: -7px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: bold;
+    min-width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

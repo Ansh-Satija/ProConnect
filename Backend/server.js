@@ -20,6 +20,11 @@ app.use(postRoutes)
 import userRoutes from "./routes/user.routes.js"
 app.use(userRoutes)
 
+//MIDDLEWARE TO USE ROUTES FROM ROUTER OBJECT OF NOTIFICATION.ROUTES.JS
+import notificationRoutes from "./routes/notification.routes.js"
+app.use(notificationRoutes)
+
+
 // EXPRESS MIDDLEWARE THAT TELLS YOUR SERVER TO MAKE THE FILES INSIDE UPLOADS FOLDER PUBLICLY ACCESSIBLE
 app.use(express.static("uploads"))
 

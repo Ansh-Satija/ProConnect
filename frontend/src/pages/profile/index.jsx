@@ -168,7 +168,7 @@ export default function ProfilePage() {
                             <div style={{ display: "flex", gap: "1.5rem" }}>
 
                                 {/* LEFT COLUMN */}
-                                <div style={{ flex: "0.68" }}>
+                                <div style={{ flex: "0.7" }}>
 
                                     {/* USER DETAILS - NAME, USERNAME, BIO */}
                                     <div className={styles.nameRow} >
@@ -188,15 +188,15 @@ export default function ProfilePage() {
                                     </div>
 
                                     {/* USER'S BIO SECTION */}
-                                    <div style={{ marginBottom: "1.5rem", width: "100%" }}>
+                                    <div style={{ marginBottom: "1.5rem", width: "100%", boxSizing: "border-box", maxWidth: "600px" }}>
 
                                         <textarea
                                             value={userProfile.bio || ""}
                                             onChange={(e) => {
                                                 setUserProfile({ ...userProfile, bio: e.target.value });
                                             }}
-
                                             rows={Math.max(3, Math.ceil(userProfile.bio.length / 80))}
+                                            style={{width: "100%"}}
 
                                         />
 
@@ -290,14 +290,17 @@ export default function ProfilePage() {
                                         return (
                                             <div key={post?._id || index} className={styles.postCard}>
                                                 <div className={styles.card}>
+                                                    <p>{post?.body}</p>
+
                                                     <div className={styles.card_profileContainer}>
                                                         {post?.media ? <img src={`${BASE_URL}/${post.media}`}
-                                                            className={styles.postImage} alt="" /> :
+                                                            className={styles.postImage} alt="" />
+                                                            :
                                                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                                                         }
                                                     </div>
 
-                                                    <p>{post?.body}</p>
+                                                    
                                                 </div>
                                             </div>
                                         )

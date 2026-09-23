@@ -79,7 +79,8 @@ export const incrementPostLike = createAsyncThunk(
         try {
             const response = await clientServer.post("/increment_post_like", 
                 {
-                    post_id: post.post_id
+                    post_id: post.post_id,
+                    token: post.token
                 }
             );
             return thunkAPI.fulfillWithValue(response.data);
