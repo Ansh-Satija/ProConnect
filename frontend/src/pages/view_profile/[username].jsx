@@ -38,12 +38,13 @@ export default function ViewProfilePage({ userProfile }) {
   // RETURN ALL POSTS OF CURRENT USER TO DISPLAY IN THAT USER'S PROFILE PAGE
   useEffect(() => {
 
-    let post = postReducer.posts.filter((post) => {
-      return post.userId.username === router.query.username
-    })
+    const posts = postReducer.posts.filter((post) => {
+      return post.userId.username === router.query.username;
+    });
 
-    setUserPosts(post);
-  }, [postReducer.posts])
+    setUserPosts(posts);
+
+  }, [postReducer.posts, router.query.username]);
 
   useEffect(() => {
     const connection = authState.connections.find(
@@ -53,9 +54,9 @@ export default function ViewProfilePage({ userProfile }) {
     setIsCurrentUserInConnection(Boolean(connection));
     setIsConnectionNull(!connection?.status_accepted);
 
-    if(authState.connectionRequest.some(user => user.userId._id === userProfile.userId._id)){
+    if (authState.connectionRequest.some(user => user.userId._id === userProfile.userId._id)) {
       setIsCurrentUserInConnection(true)
-      if(authState.connectionRequest.find(user => user.userId._id === userProfile.userId._id).status_accepted === true){
+      if (authState.connectionRequest.find(user => user.userId._id === userProfile.userId._id).status_accepted === true) {
         setIsConnectionNull(false)
       }
     }
@@ -100,8 +101,8 @@ export default function ViewProfilePage({ userProfile }) {
                   <p style={{ color: "grey" }}>@{userProfile.userId.username}</p>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", marginBottom: "1rem"}}>
-                  
+                <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", marginBottom: "1rem" }}>
+
                   {/* TO DISPLAY CONNECT BTN IF NOT A CONNECTION AND CONNECTED BTN IF IT IS A CONNECTION */}
                   {isCurrentUserInConnection ?
                     <button className={styles.connectedButton}>
@@ -119,15 +120,15 @@ export default function ViewProfilePage({ userProfile }) {
                   }
 
                   {/* DOWNLOAD PROFILE AS RESUME BUTTON */}
-                  <div 
+                  <div
                     className={styles.resumeButton}
                     onClick={async () => {
                       const response = await clientServer.get(`/user/download_resume?id=${userProfile.userId._id}`)
                       window.open(`${BASE_URL}/${response.data.message}`, "_blank")
                     }}
-                    style={{cursor: "pointer"}}
+                    style={{ cursor: "pointer" }}
                   >
-                    <svg style={{width: "1.2em"}} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                    <svg style={{ width: "1.2em" }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
 
@@ -156,14 +157,14 @@ export default function ViewProfilePage({ userProfile }) {
 
                         <div className={styles.card_profileContainer}>
 
-                          {post.media !== "" ? <img src={`${BASE_URL}/${post.media}`} /> 
-                          :
+                          {post.media !== "" ? <img src={`${BASE_URL}/${post.media}`} />
+                            :
                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                           }
 
                         </div>
 
-                        
+
                       </div>
                     </div>
                   )

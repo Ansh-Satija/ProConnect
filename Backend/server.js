@@ -31,10 +31,18 @@ app.use(express.static("uploads"))
 
 //CONNECT TO DB AND START SERVER 
 const start = async () => {
-    const connectDB = await mongoose.connect("mongodb+srv://arnavansh31_db_user:IyIhndKUcOKqznQm@linkedin-clone.6nnmrwn.mongodb.net/?appName=linkedIn-clone")
+    const databaseUrl = process.env.DB_CONNECTION_STRING;
+    if (!databaseUrl) {
+        throw new Error("DB_CONNECTION_STRING is required");
+    }
+
+    await mongoose.connect(databaseUrl);
 
     app.listen(8080, () => {
         console.log('Server is running on Port 8080');
     })
 }
-start();
+start().catch((error) => {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+});

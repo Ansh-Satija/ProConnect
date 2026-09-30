@@ -142,7 +142,7 @@ function Dashboard() {
                           
                           {/* WHEN YOU CLICK THE NAME OF AUTHOR ON HIS POST, IT OPENS THE PROFILE PAGE OF THAT USER */}
                           <p onClick={() => {
-                            router.push(`/view_profile/${authState.userProfile.userId.username}`)
+                            router.push(`/view_profile/${post.userId.username}`)
                           }}
                            className={styles.singleCard_Name}>{post.userId.name}</p>
 
