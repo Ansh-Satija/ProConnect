@@ -76,5 +76,25 @@
 @media screen and (max-width: 600px) {
     .cardContainer {
         flex-direction: column;
+        width: min(100%, 32rem);
+        height: auto;
+        min-height: 80svh;
     }
+}
+
+@media (max-width: 800px) {
+    .container { min-height: 90svh; height: auto; padding: 1rem; }
+    .cardContainer { width: min(100%, 52rem); }
+    .cardContainer_left { min-width: 0; padding: clamp(1rem, 4vw, 2rem); }
+    .inputRow { width: 100%; gap: 0.65rem; }
+    .inputRow .inputField { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+    .cardContainer { overflow: visible; }
+    .cardContainer_left { flex: 1; }
+    .cardContainer_right { flex: 0 0 auto; min-height: 8rem; padding: 1.25rem; }
+    .inputContainers { width: 100%; gap: 0.9rem; }
+    .inputRow { flex-direction: column; }
+    .inputField { min-height: 2.8rem; }
 }

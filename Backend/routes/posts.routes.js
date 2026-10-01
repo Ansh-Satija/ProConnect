@@ -33,7 +33,7 @@ router.route('/').get(activeCheck);
 router.route("/post").post(upload.single('media'), authenticateUser, createPost);
 
 // GET ALL POSTS
-router.route("/posts").get(getAllPosts);
+router.route("/posts").get(authenticateUser, getAllPosts);
 
 // DELETE A POST (ONLY THE AUTHOR CAN DELETE OWN POST)
 router.route("/delete_post").delete(authenticateUser, deletePost);

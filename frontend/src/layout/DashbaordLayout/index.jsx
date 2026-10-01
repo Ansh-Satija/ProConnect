@@ -182,6 +182,7 @@ export default function DashboardLayout({ children }) {
 
             <p>People You May Know</p>
 
+            <div className={styles.suggestedUsersList}>
             {authState.suggestedUsers?.map((user) => {
 
               const connection = getConnectionStatus(user._id);
@@ -231,7 +232,7 @@ export default function DashboardLayout({ children }) {
                       <button
                         className={styles.pendingButton}
                         disabled
-                        onClick={(e) => e.stopPropagation}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         Pending
                       </button>
@@ -268,6 +269,7 @@ export default function DashboardLayout({ children }) {
                 </div>
               );
             })}
+            </div>
           </div>
 
         </div>

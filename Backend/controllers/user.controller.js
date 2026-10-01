@@ -307,13 +307,22 @@ export const sendConnectionRequest = async (req, res) => {
             return res.status(404).json({ message: "Connection User Not Found" });
         }
 
+        if (user._id.equals(connectionUser._id)) {
+            return res.status(400).json({ message: "You cannot connect with yourself" })
+        }
+
         const existingRequest = await ConnectionRequest.findOne({
-            userId: user._id,
-            connectionId: connectionUser._id
+            $or: [
+                { userId: user._id, connectionId: connectionUser._id },
+                { userId: connectionUser._id, connectionId: user._id }
+            ]
         })
 
         if (existingRequest) {
-            return res.status(400).json({ message: "Request Already Sent" })
+            if (existingRequest.userId.equals(user._id)) {
+                return res.status(400).json({ message: "Request Already Sent" })
+            }
+            return res.status(400).json({ message: "This user has already sent you a request" })
         }
 
         // IF NOT EXISTING REQUEST I.E. IT IS A NEW REQUEST
@@ -322,7 +331,15 @@ export const sendConnectionRequest = async (req, res) => {
             connectionId: connectionUser._id
         })
 
-        await request.save();
+        try {
+            await request.save();
+        }
+        catch (err) {
+            if (err.code === 11000) {
+                return res.status(400).json({ message: "Request Already Sent" })
+            }
+            throw err;
+        }
 
         // CREATE NEW NOTIFICATION OBJECT TO NOTIFY RECEIVER ABOUT NEW REQUEST - 
         const notification = new Notification({

@@ -1,5 +1,7 @@
 .homeContainer {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(145px, 0.8fr) minmax(0, 2.5fr) minmax(210px, 1fr);
+    align-items: start;
 }
 
 .homeContainer>div:nth-child(odd) {
@@ -131,6 +133,16 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.suggestedUsersList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .suggestedProfile {
@@ -220,4 +232,19 @@
 
 .suggestedProfile:hover {
     cursor: pointer;
+}
+
+@media only screen and (min-width: 601px) and (max-width: 980px) {
+    .homeContainer { grid-template-columns: minmax(135px, 180px) minmax(0, 1fr); }
+    .homeContainer_extraContainer { display: none; }
+    .homeContainer_leftBar { padding-right: 0.5rem; }
+    .sideBarOption { width: 95%; max-width: 95%; gap: 0.65rem; font-size: 0.95rem; }
+}
+
+@media only screen and (max-width: 600px) {
+    .homeContainer { display: block; }
+    .homeContainer_leftBar { display: none; }
+    .homeContainer_extraContainer { display: none; }
+    .homeContainer_feedContainer { min-width: 0; padding: 0 0.65rem 5.5rem; }
+    .mobileNavbar { height: calc(3.75rem + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); z-index: 10; }
 }

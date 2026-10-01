@@ -79,7 +79,11 @@ export const getAllUsers = createAsyncThunk(
     async (_, thunkAPI) => {
 
         try{
-            const response = await clientServer.get("/user/get_all_users");
+            const response = await clientServer.get("/user/get_all_users", {
+                params: {
+                    token: localStorage.getItem("token")
+                }
+            });
 
             return thunkAPI.fulfillWithValue(response.data)
         }

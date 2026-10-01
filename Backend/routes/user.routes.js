@@ -47,7 +47,7 @@ router.route("/get_user_and_profile").get(authenticateUser, getUserAndProfile)
 router.route("/update_profile_data").post(authenticateUser, updateProfileData)
 
 // GET ALL USER PROFILES (DOCS) CREATED IN DB
-router.route("/user/get_all_users").get(getAllUserProfiles, authenticateUser)
+router.route("/user/get_all_users").get(authenticateUser, getAllUserProfiles)
 
 // DOWNLOAD USER'S PROFILE DATA AS A PDF (RESUME)
 router.route("/user/download_resume").get(authenticateUser, downloadProfile)

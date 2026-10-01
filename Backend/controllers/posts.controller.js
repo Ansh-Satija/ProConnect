@@ -4,16 +4,17 @@ import Profile from "../models/profile.models.js"
 import Post from "../models/posts.model.js"
 import Comment from "../models/comments.model.js"
 import Notification from "../models/notification.model.js"
+import Like from "../models/like.model.js"
 
 // TEST ROUTE
-export const activeCheck = async (req,res) => {
-    return res.json({message: "RUNNING"})
+export const activeCheck = async (req, res) => {
+    return res.json({ message: "RUNNING" })
 }
 
 // TO CREATE A NEW POST 
-export const createPost = async (req,res) => {
+export const createPost = async (req, res) => {
 
-    try{
+    try {
         const user = req.user;
 
         const post = new Post({
@@ -24,57 +25,73 @@ export const createPost = async (req,res) => {
         });
 
         await post.save();
-        return res.status(200).json({message: "Post Created"})
+        return res.status(200).json({ message: "Post Created" })
     }
 
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 
 }
 
 // TO GET ALL POSTS (ALL DOCS IN POSTS COLLECTION)
-export const getAllPosts = async (req,res) => {
+export const getAllPosts = async (req, res) => {
 
-    try{
+    try {
         const posts = await Post.find().populate('userId', 'name username profilePicture');
+        const postIds = posts.map(post => post._id);
+        const [likes, commentCounts] = await Promise.all([
+            Like.find({ userId: req.user._id, postId: { $in: postIds } }).select('postId'),
+            Comment.aggregate([
+                { $match: { postId: { $in: postIds } } },
+                { $group: { _id: '$postId', count: { $sum: 1 } } }
+            ])
+        ]);
+        const likedPostIds = new Set(likes.map(like => like.postId.toString()));
+        const commentsByPostId = new Map(commentCounts.map(item => [item._id.toString(), item.count]));
 
-        return res.json({posts});   
+        return res.json({
+            posts: posts.map(post => ({
+                ...post.toObject(),
+                likedByCurrentUser: likedPostIds.has(post._id.toString()),
+                commentsCount: commentsByPostId.get(post._id.toString()) ?? 0
+            }))
+        });
     }
 
-    catch(err){
-        return res.status(500).json({message: err.message});
+    catch (err) {
+        return res.status(500).json({ message: err.message });
     }
 }
 
 // TO DELETE A POST (ONLY THE AUTHOR OF THE POST CAN DELETE OWN POST, NOBODY ELSE)
-export const deletePost = async (req,res) => {
+export const deletePost = async (req, res) => {
     const { post_id } = req.body;
 
-    try{
+    try {
         // FIND CURRENTLY LOGGED IN USER'S DOC IN DB TO GET HIS USERID
         const user = req.user
 
         // FIND POST'S DOC (STORING THE CURRENT POST'S BODY AND AUTHOR DETAILS) IN DB
-        const post = await Post.findOne({_id: post_id})
+        const post = await Post.findOne({ _id: post_id })
 
-        if(!post){
-            return res.status(404).json({message: "Post Not Found"})
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" })
         }
 
         // AUTHORIZATION - ONLY THE POST'S AUTHOR CAN DELETE HIS OWN POST
         // CHECK IF THE USER TRYING TO DELETE THE POST IS AUTHOR OF THE POST OR NOT
-        if(post.userId.toString() !== user._id.toString()){
-            return res.status(401).json({message: "Unauthorized"})
+        if (post.userId.toString() !== user._id.toString()) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
 
-        await Post.deleteOne({_id: post_id})
+        await Post.deleteOne({ _id: post_id })
 
-        return res.json({message: "Post Deleted"})
+        return res.json({ message: "Post Deleted" })
     }
 
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 
 }
@@ -82,16 +99,16 @@ export const deletePost = async (req,res) => {
 // <--- CRUD FUNCTIONALITY FOR COMMENTS --->
 
 // CREATE A COMMENT UNDER A POST
-export const commentPost = async (req,res) => {
-    const { post_id, commentBody} = req.body;
+export const commentPost = async (req, res) => {
+    const { post_id, commentBody } = req.body;
 
-    try{
+    try {
         const user = req.user;
 
-        const post = await Post.findOne({_id: post_id});
+        const post = await Post.findOne({ _id: post_id });
 
-        if(!post){
-            return res.status(404).json({message: "Post Not Found"});
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" });
         }
 
         const comment = new Comment({
@@ -103,7 +120,7 @@ export const commentPost = async (req,res) => {
         await comment.save();
 
         // NOTIFY AUTHOR OF THE POST WHEN SOMEONE ELSE COMMENTS ON THEIR POST (BUT DON'T NOTIFY AUTHOR WHEN THEY COMMENT ON OWN POST)
-        if(post.userId.toString() != user._id.toString()){
+        if (post.userId.toString() != user._id.toString()) {
 
             const notification = new Notification({
                 recipient: post.userId,  // AUTHOR OF THE POST
@@ -114,86 +131,108 @@ export const commentPost = async (req,res) => {
             await notification.save();
         }
 
-        return res.status(200).json({message: "New Comment Added"})
+        return res.status(200).json({ message: "New Comment Added" })
 
     }
 
-    catch(err){
-        return res.status(500).json({message: err.message});
+    catch (err) {
+        return res.status(500).json({ message: err.message });
     }
 }
 
 // TO GET/DISPLAY ALL COMMENTS UNDER A SPECIFIC POST
-export const getCommentsByPost = async (req,res) => {
-    const {post_id} = req.query; //NOT REQ.BODY AS IT IS A GET REQUEST NOT POST REQUEST
+export const getCommentsByPost = async (req, res) => {
+    const { post_id } = req.query; //NOT REQ.BODY AS IT IS A GET REQUEST NOT POST REQUEST
 
-    try{
-        const post = await Post.findOne({"_id": post_id});
+    try {
+        const post = await Post.findOne({ "_id": post_id });
 
-        if(!post){
-            return res.status(404).json({message: "Post Not Found"});
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" });
         }
 
         const comments = await Comment
-        .find({postId: post_id})
-        .populate("userId", "name username profilePicture");
+            .find({ postId: post_id })
+            .populate("userId", "name username profilePicture")
+            .sort({_id: -1});
 
-        return res.json(comments.reverse())
+        return res.json(comments)
     }
 
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 }
 
 // TO DELETE A COMMENT (ONLY AUTHOR OF COMMENT CAN DELETE OWN COMMENT)
-export const deleteComment = async (req,res) => {
-    const {comment_id} = req.body;
+export const deleteComment = async (req, res) => {
+    const { comment_id } = req.body;
 
-    try{
+    try {
         const user = req.user;
 
-        const comment = await Comment.findOne({_id: comment_id})
+        const comment = await Comment.findOne({ _id: comment_id })
 
-        if(!comment){
-            return res.status(404).json({message: "Comment Not Found"})
+        if (!comment) {
+            return res.status(404).json({ message: "Comment Not Found" })
         }
 
         // AUTHORIZATION: Only the comment author can delete it
-        if(comment.userId.toString() !== user._id.toString()){
-            return res.status(401).json({message: "Unauthorized"})
+        if (comment.userId.toString() !== user._id.toString()) {
+            return res.status(401).json({ message: "Unauthorized" })
         }
 
-        await Comment.deleteOne({_id: comment_id})
+        await Comment.deleteOne({ _id: comment_id })
 
-        return res.json({message: "Comment Deleted"})
+        return res.json({ message: "Comment Deleted" })
 
     }
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 }
 
-// TO INCREMENT NUMBER OF LIKES OF A POST
-export const incrementLikes = async (req,res) => {
+// TO TOGGLE A LIKE ON A POST
+export const incrementLikes = async (req, res) => {
 
-    const {post_id} = req.body;
+    const { post_id } = req.body;
 
-    try{
+    try {
 
         const user = req.user;  // USED TO CREATE NEW NOTIFICATION OBJECT
-        const post = await Post.findOne({_id: post_id});
+        const post = await Post.findOne({ _id: post_id });
 
-        if(!post){
-            return res.status(404).json({message: "Post Not Found"})
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" })
         }
 
-        // IF POST FOUND - INCREMENT LIKES
-        post.likes = post.likes + 1;
-        await post.save();
+        const existingLike = await Like.findOneAndDelete({
+            userId: user._id,
+            postId: post._id
+        });
+
+        if (existingLike) {
+            await Post.updateOne(
+                { _id: post._id, likes: { $gt: 0 } },
+                { $inc: { likes: -1 } }
+            );
+            return res.json({ message: "Like Removed", liked: false });
+        }
+
+        try {
+            await Like.create({ userId: user._id, postId: post._id });
+        } catch (err) {
+            if (err.code === 11000) {
+                return res.status(409).json({ message: "Already Liked" });
+            }
+            throw err;
+        }
+
+        await Post.updateOne({ _id: post._id }, { $inc: { likes: 1 } });
+
 
         // NOTIFY THE AUTHOR THAT THEIR POST HAS BEEN LIKED (BUT DON'T NOTIFY AUTHOR IF AUTHOR LIKES THEIR OWN POST)
-        if(post.userId.toString() !== user._id.toString()){
+        if (post.userId.toString() !== user._id.toString()) {
 
             const notification = new Notification({
                 recipient: post.userId,
@@ -205,10 +244,10 @@ export const incrementLikes = async (req,res) => {
             await notification.save();
         }
 
-        return res.json({message: "Likes Incremented"})
+        return res.json({ message: "Post Liked", liked: true })
     }
-    catch(err){
-        return res.status(500).json({message: err.message})
+    catch (err) {
+        return res.status(500).json({ message: err.message })
     }
 }
 

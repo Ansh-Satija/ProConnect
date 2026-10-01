@@ -1,4 +1,4 @@
-import { acceptConnection, getConnectionRequest, getMyConnectionRequests } from '@/config/redux/action/authAction';
+import { acceptConnection, getConnectionRequest, getMyConnectionRequests, sendConnectionRequest } from '@/config/redux/action/authAction';
 import DashboardLayout from '@/layout/DashbaordLayout'
 import UserLayout from '@/layout/UserLayout'
 import React, { useEffect } from 'react'
@@ -140,6 +140,48 @@ function MyConnectionsPage() {
                         )
 
                     })}
+
+                    <section className={styles.buildYourNetwork}>
+                        <h2>Build Your Network</h2>
+                        <p className={styles.networkIntro}>People you may know</p>
+                        <div className={styles.networkSuggestions}>
+                            {authState.suggestedUsers?.map((user) => {
+                                const sent = authState.connections.find((request) => request.connectionId?._id === user._id);
+                                const received = authState.connectionRequest.find((request) => request.userId?._id === user._id);
+                                const relationship = sent || received;
+                                const status = relationship?.status_accepted === true
+                                    ? "Connected"
+                                    : sent?.status_accepted === null
+                                        ? "Pending"
+                                        : received?.status_accepted === null
+                                            ? "Accept"
+                                            : "Connect";
+
+                                return (
+                                    <div className={styles.networkSuggestion} key={user._id}>
+                                        <img src={`${BASE_URL}/${user.profilePicture}`} alt="" />
+                                        <div className={styles.networkUserInfo}>
+                                            <h3>{user.name}</h3>
+                                            <p>@{user.username}</p>
+                                        </div>
+                                        {status === "Connect" && (
+                                            <button onClick={() => dispatch(sendConnectionRequest({
+                                                token: localStorage.getItem("token"), user_id: user._id
+                                            }))}>Connect</button>
+                                        )}
+                                        {status === "Accept" && (
+                                            <button onClick={() => dispatch(acceptConnection({
+                                                token: localStorage.getItem("token"), connectionId: relationship._id, action: "accept"
+                                            }))}>Accept</button>
+                                        )}
+                                        {(status === "Pending" || status === "Connected") && (
+                                            <span className={styles.networkStatus}>{status}</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
                 </div>
             </DashboardLayout>
 

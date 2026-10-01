@@ -10,7 +10,9 @@ export const getAllPosts = createAsyncThunk(
 
         try {
 
-            const response = await clientServer.get("/posts")
+            const response = await clientServer.get("/posts", {
+                params: { token: localStorage.getItem("token") }
+            })
 
             return thunkAPI.fulfillWithValue(response.data);
         }

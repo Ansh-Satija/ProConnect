@@ -7,7 +7,7 @@ import styles from "./index.module.css"
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPosts } from '@/config/redux/action/postAction';
-import { getConnectionRequest, getMyConnectionRequests, sendConnectionRequest } from '@/config/redux/action/authAction';
+import { getAboutUser, getConnectionRequest, getMyConnectionRequests, sendConnectionRequest } from '@/config/redux/action/authAction';
 
 export default function ViewProfilePage({ userProfile }) {
 
@@ -16,6 +16,7 @@ export default function ViewProfilePage({ userProfile }) {
   const dispatch = useDispatch();
 
   const authState = useSelector((state) => state.auth)
+  const isOwnProfile = authState.userProfile?.userId?._id?.toString() === userProfile.userId?._id?.toString();
 
   const [userPosts, setUserPosts] = useState([]);
 
@@ -25,14 +26,16 @@ export default function ViewProfilePage({ userProfile }) {
 
 
   const getUsersPost = async () => {
+    const token = localStorage.getItem("token");
     await dispatch(getAllPosts());
     await dispatch(getConnectionRequest({
-      token: localStorage.getItem("token")
+      token
     }))
 
     await dispatch(getMyConnectionRequests({
-      token: localStorage.getItem("token")
+      token
     }))
+    await dispatch(getAboutUser({ token }));
   }
 
   // RETURN ALL POSTS OF CURRENT USER TO DISPLAY IN THAT USER'S PROFILE PAGE
@@ -104,7 +107,7 @@ export default function ViewProfilePage({ userProfile }) {
                 <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", marginBottom: "1rem" }}>
 
                   {/* TO DISPLAY CONNECT BTN IF NOT A CONNECTION AND CONNECTED BTN IF IT IS A CONNECTION */}
-                  {isCurrentUserInConnection ?
+                  {authState.userProfile && !isOwnProfile && (isCurrentUserInConnection ?
                     <button className={styles.connectedButton}>
                       {isConnectionNull ? "Pending" : "Connected"}
                     </button>
@@ -117,7 +120,7 @@ export default function ViewProfilePage({ userProfile }) {
                     }}
                       className={styles.connectBtn}
                     >Connect</button>
-                  }
+                  )}
 
                   {/* DOWNLOAD PROFILE AS RESUME BUTTON */}
                   <div
