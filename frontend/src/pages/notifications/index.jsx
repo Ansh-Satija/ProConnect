@@ -34,7 +34,7 @@ export default function Notifications() {
                 `/view_profile/${notification.sender.username}`
             );
         }
-        else if(notification.type === "LIKE" || notification.type === "COMMENT"){
+        else if((notification.type === "LIKE" || notification.type === "COMMENT") && notification.post?._id){
             router.push(`/dashboard?postId=${notification.post._id}`)
         }
     }

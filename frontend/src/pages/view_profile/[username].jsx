@@ -126,8 +126,18 @@ export default function ViewProfilePage({ userProfile }) {
                   <div
                     className={styles.resumeButton}
                     onClick={async () => {
-                      const response = await clientServer.get(`/user/download_resume?id=${userProfile.userId._id}`)
-                      window.open(`${BASE_URL}/${response.data.message}`, "_blank")
+                      try {
+                        const response = await clientServer.get("/user/download_resume", {
+                          params: {
+                            id: userProfile.userId._id,
+                            token: localStorage.getItem("token")
+                          }
+                        });
+                        window.open(`${BASE_URL}/${response.data.message}`, "_blank");
+                      } catch (error) {
+                        console.error("Resume download failed:", error);
+                        window.alert(error.response?.data?.message || "Could not download this resume. Please sign in and try again.");
+                      }
                     }}
                     style={{ cursor: "pointer" }}
                   >
@@ -244,14 +254,20 @@ export async function getServerSideProps(context) {
   console.log("From View")
   console.log(context.query.username)
 
-  const request = await clientServer.get("/user/get_profile_based_on_username", {
-    params: {
-      username: context.query.username
-    }
-  })
+  try {
+    const request = await clientServer.get("/user/get_profile_based_on_username", {
+      params: {
+        username: context.query.username
+      }
+    })
 
-  const response = await request.data;
-  console.log(response)
+    const response = await request.data;
+    console.log(response)
 
-  return { props: { userProfile: request.data.profile } }
+    return { props: { userProfile: request.data.profile } }
+  }
+  catch (err) {
+    if (err.response?.status === 404) return { notFound: true };
+    throw err;
+  }
 }

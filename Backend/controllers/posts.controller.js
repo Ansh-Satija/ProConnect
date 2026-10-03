@@ -85,7 +85,14 @@ export const deletePost = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" })
         }
 
-        await Post.deleteOne({ _id: post_id })
+        await Post.deleteOne({ _id: post_id });
+
+        // TO DELETE ALL THE COMMENTS, LIKES AND NOTIFICATION INFO RELATED TO THE DELETED POST - 
+        await Promise.all([
+            Comment.deleteMany({postId: post._id}),
+            Like.deleteMany({postId: post._id}),
+            Notification.deleteMany({ post: post._id })
+        ])
 
         return res.json({ message: "Post Deleted" })
     }
@@ -233,15 +240,28 @@ export const incrementLikes = async (req, res) => {
 
         // NOTIFY THE AUTHOR THAT THEIR POST HAS BEEN LIKED (BUT DON'T NOTIFY AUTHOR IF AUTHOR LIKES THEIR OWN POST)
         if (post.userId.toString() !== user._id.toString()) {
-
-            const notification = new Notification({
+            const notificationQuery = {
                 recipient: post.userId,
                 sender: user._id,
                 type: "LIKE",
                 post: post._id
-            });
+            };
+            const existingNotification = await Notification.findOne(notificationQuery)
+                .sort({ createdAt: -1 });
 
-            await notification.save();
+            if (existingNotification) {
+                existingNotification.isRead = false;
+                existingNotification.createdAt = new Date();
+                await existingNotification.save();
+
+                // Clean up any duplicate LIKE notifications already stored for this pair.
+                await Notification.deleteMany({
+                    ...notificationQuery,
+                    _id: { $ne: existingNotification._id }
+                });
+            } else {
+                await Notification.create(notificationQuery);
+            }
         }
 
         return res.json({ message: "Post Liked", liked: true })

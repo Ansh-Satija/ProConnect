@@ -14,7 +14,20 @@ export const getNotifications = async (req, res) => {
             .populate("post", "body")
             .sort({ createdAt: -1 });
 
-        return res.status(200).json({ notifications })
+        // Remove legacy post notifications whose post was deleted before the
+        // delete handler used the correct `post` field.
+        const orphanedPostNotifications = notifications.filter(notification =>
+            (notification.type === "LIKE" || notification.type === "COMMENT") && !notification.post
+        );
+        if (orphanedPostNotifications.length > 0) {
+            await Notification.deleteMany({
+                _id: { $in: orphanedPostNotifications.map(notification => notification._id) }
+            });
+        }
+
+        const activeNotifications = notifications.filter(notification => !orphanedPostNotifications.includes(notification));
+
+        return res.status(200).json({ notifications: activeNotifications })
     }
     catch (err) {
         return res.status(500).json({ message: err.message });

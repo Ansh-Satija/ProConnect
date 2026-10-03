@@ -78,15 +78,15 @@ function Dashboard() {
   }
 
   // TO SCROLL TO A SPECIFIC POST WHEN USER GETS NOTIFICATION THAT SOMEONE HAS LIKED/ COMMENTED ON THEIR POST (FOR LIKE/ COMMENT)
-  const {postId} = router.query;
+  const { postId } = router.query;
   useEffect(() => {
 
-    if(!router.isReady || !postId || posts.length == 0){
+    if (!router.isReady || !postId || posts.length == 0) {
       return;
     }
     const postElement = document.getElementById(`post-${postId}`)
 
-    if(postElement){
+    if (postElement) {
       postElement.scrollIntoView({
         behavior: "smooth",
         block: "center"
@@ -139,7 +139,7 @@ function Dashboard() {
             </div>
 
             {/* FEED SECTION - SHOW ALL POSTS */}
-            <div 
+            <div
               className={styles.postsContainer}
             >
 
@@ -159,12 +159,12 @@ function Dashboard() {
                           gap: "1rem",
                           justifyContent: "space-between",
                         }}>
-                          
+
                           {/* WHEN YOU CLICK THE NAME OF AUTHOR ON HIS POST, IT OPENS THE PROFILE PAGE OF THAT USER */}
                           <p onClick={() => {
                             router.push(`/view_profile/${post.userId.username}`)
                           }}
-                           className={styles.singleCard_Name}>{post.userId.name}</p>
+                            className={styles.singleCard_Name}>{post.userId.name}</p>
 
                           {/* DELETE POST BUTTON SHOULD ONLY BE VISIBLE TO THE AUTHOR OF THAT POST */}
                           {
@@ -189,9 +189,29 @@ function Dashboard() {
                         <p style={{ paddingTop: "1rem" }}>{post.body}</p>
 
                         {post.media && (
-                          <div className={styles.singleCard_image}>
-                            <img src={`${BASE_URL}/${post.media}`} alt="Uploaded post media" />
-                          </div>
+                          /\.(mp4|webm|mov)$/i.test(post.media) ? (
+                            <video
+                              className={styles.singleCard_image}
+                              src={`${BASE_URL}/${post.media}`}
+                              controls
+                              style={{ maxWidth: "100%" }}
+                            />
+                          ) : /\.(jpe?g|png|gif|webp)$/i.test(post.media) ? (
+                            <div className={styles.singleCard_image}>
+                              <img
+                                src={`${BASE_URL}/${post.media}`}
+                                alt="Uploaded post media"
+                              />
+                            </div>
+                          ) : (
+                            <a
+                              href={`${BASE_URL}/${post.media}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              View attachment
+                            </a>
+                          )
                         )}
 
                         {/* POST OPTIONS - LIKE, COMMENT, SHARE */}
@@ -219,8 +239,9 @@ function Dashboard() {
 
                           {/* COMMENT BUTTON */}
                           <div
-                            onClick={() => {
-                              dispatch(getAllComments({ post_id: post._id }))
+                            onClick={ () => {
+                               dispatch(getAllComments({ post_id: post._id }))
+                               dispatch(getAllPosts())   // refreshes commentsCount on the feed
                             }}
                             className={styles.singleOption_optionsContainer}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -325,7 +346,7 @@ function Dashboard() {
                   type="text" value={commentText}
                   onChange={(e) => { setCommentText(e.target.value) }}
                   placeholder="Add a comment..."
-                  style={{fontSize: "14px"}}
+                  style={{ fontSize: "14px" }}
                 />
 
                 {/* SUBMIT COMMENT BUTTON */}
@@ -335,12 +356,13 @@ function Dashboard() {
                       post_id: postState.postId,
                       body: commentText
                     }))
-                    if(postComment.fulfilled.match(resultAction)){
+                    if (postComment.fulfilled.match(resultAction)) {
                       setCommentText("")
                     }
                     await dispatch(getAllComments({
                       post_id: postState.postId,
                     }))
+                    await dispatch(getAllPosts())   // refreshes commentsCount on the feed
                   }}
                   className={styles.postCommentContainer_commentBtn}
                 >
