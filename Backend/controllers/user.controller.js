@@ -121,6 +121,7 @@ export const uploadProfilePicture = async (req, res) => {
         return res.json({ message: "Profile picture updated" })
     }
     catch (err) {
+        console.error("PROFILE PICTURE UPLOAD FAILED:", err);
         res.status(500).json({ message: err.message })
     }
 }

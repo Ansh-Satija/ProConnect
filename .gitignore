@@ -5,5 +5,8 @@ Backend/uploads/
 .env
 /Backend/.env
 /frontend/.env.local
-/frontend/public
+/frontend/public/*
+!/frontend/public/images/
+!/frontend/public/images/homemain_connection.jpg
+!/frontend/public/default.jpg
 Backend/api.http

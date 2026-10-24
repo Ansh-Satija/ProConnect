@@ -82,15 +82,13 @@ export default function ProfilePage() {
         formData.append("profile_picture", file);
         formData.append("token", token)
 
-        const response = await clientServer.post("/update_profile_picture", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-
-        dispatch(getAboutUser({
-            token: localStorage.getItem("token")
-        }))
+        try {
+            await clientServer.post("/update_profile_picture", formData);
+            dispatch(getAboutUser({ token }));
+        } catch (error) {
+            console.error("Profile picture upload failed:", error.response?.data || error);
+            window.alert(error.response?.data?.message || "Could not upload the profile picture. Please try again.");
+        }
     }
 
     // EVENT HANDLER FUNCTION TRIGGERED WHEN UPDATE BUTTON (AT END OF PAGE) IS CLICKED - TO SAVE CHANGES MADE BY LOGGED-IN USER IN ANY FIELD OF PROFILE PAGE

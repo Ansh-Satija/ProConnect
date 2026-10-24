@@ -72,6 +72,11 @@ function Dashboard() {
       setPostContent("");
       setFileContent(null);
       dispatch(getAllPosts());
+    } else {
+      const errorMessage = resultAction.payload?.message || resultAction.payload || "Could not create the post. Please try again.";
+      console.error("Post creation failed:", resultAction.payload);
+      window.alert(errorMessage);
+      return;
     }
 
     dispatch(getAllPosts())

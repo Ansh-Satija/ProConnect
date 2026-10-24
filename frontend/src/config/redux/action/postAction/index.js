@@ -33,13 +33,9 @@ export const createPost = createAsyncThunk(
 
             formData.append('token', localStorage.getItem("token"))
             formData.append('body', body)
-            formData.append('media', file)
+            if (file) formData.append('media', file)
 
-            const response = await clientServer.post("/post", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            });
+            const response = await clientServer.post("/post", formData);
 
             if (response.status === 200) {
                 return thunkAPI.fulfillWithValue("Post Uploaded Successfully!")
@@ -49,7 +45,7 @@ export const createPost = createAsyncThunk(
             }
         }
         catch (err) {
-            return thunkAPI.rejectWithValue(err.response.data)
+            return thunkAPI.rejectWithValue(err.response?.data || { message: err.message })
         }
     }
 )
