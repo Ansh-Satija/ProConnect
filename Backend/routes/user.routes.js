@@ -6,29 +6,19 @@ import { register, login, uploadProfilePicture, updateUserProfile, getUserAndPro
      getUserProfileAndUserBasedOnUsername, 
      getSuggestedUsers, searchUsers} from "../controllers/user.controller.js";
 
-import multer from "multer"
-import { diskStorage } from "multer";
+// USING CLOUDINARY STORAGE FOR STORING FILES/ UPLOADS
+import { uploadPostMedia } from "../middlewares/upload.middleware.js";
 
 // IMPORT AUTH MIDDLEWARE FUNCTION - 
 import {authenticateUser} from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// SETUP MULTER FOR PROFILE PICTURE FEATURE
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    }
-});
 
-const upload = multer({ storage: storage });
 
 // DEFINES API ENDPOINT(OR ROUTE) TO UPDATE USER'S PROFILE PICTURE
 router.route("/update_profile_picture")
-    .post(upload.single('profile_picture'), 
+    .post(uploadPostMedia.single('profile_picture'),
     authenticateUser, 
     uploadProfilePicture
 );

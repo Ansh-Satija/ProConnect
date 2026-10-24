@@ -1,4 +1,4 @@
-import { BASE_URL, clientServer } from '@/config';
+import { clientServer, mediaUrl } from '@/config';
 import DashboardLayout from '@/layout/DashbaordLayout';
 import UserLayout from '@/layout/UserLayout';
 import { useSearchParams } from 'next/navigation'
@@ -87,7 +87,7 @@ export default function ViewProfilePage({ userProfile }) {
 
           {/* TOP SECTION OF PROFILE PAGE - BACKDROP + PROFILE PICTURE */}
           <div className={styles.backDropContainer}>
-            <img className={styles.backDrop} src={`${BASE_URL}/${userProfile.userId.profilePicture}`} alt="" />
+            <img className={styles.backDrop} src={mediaUrl(userProfile.userId?.profilePicture)} alt="" />
           </div>
 
 
@@ -131,9 +131,10 @@ export default function ViewProfilePage({ userProfile }) {
                           params: {
                             id: userProfile.userId._id,
                             token: localStorage.getItem("token")
-                          }
+                          },
+                          responseType: "blob"
                         });
-                        window.open(`${BASE_URL}/${response.data.message}`, "_blank");
+                        window.open(URL.createObjectURL(response.data), "_blank");
                       } catch (error) {
                         console.error("Resume download failed:", error);
                         window.alert(error.response?.data?.message || "Could not download this resume. Please sign in and try again.");
@@ -170,7 +171,7 @@ export default function ViewProfilePage({ userProfile }) {
 
                         <div className={styles.card_profileContainer}>
 
-                          {post.media !== "" ? <img src={`${BASE_URL}/${post.media}`} />
+                          {post.media ? <img src={mediaUrl(post.media)} alt="Post attachment" />
                             :
                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                           }
@@ -250,19 +251,22 @@ export default function ViewProfilePage({ userProfile }) {
 }
 
 export async function getServerSideProps(context) {
+  const username = context.params?.username;
 
-  console.log("From View")
-  console.log(context.query.username)
+  if (typeof username !== "string" || !username.trim()) {
+    return { notFound: true };
+  }
 
   try {
     const request = await clientServer.get("/user/get_profile_based_on_username", {
       params: {
-        username: context.query.username
+        username
       }
     })
 
-    const response = await request.data;
-    console.log(response)
+    if (!request.data?.profile) {
+      return { notFound: true };
+    }
 
     return { props: { userProfile: request.data.profile } }
   }

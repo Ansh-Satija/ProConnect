@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import styles from "./index.module.css"
-import { BASE_URL } from '@/config';
+import { mediaUrl } from '@/config';
 import { resetPostId } from '@/config/redux/reducer/postReducer';
 
 function Dashboard() {
@@ -109,7 +109,7 @@ function Dashboard() {
               {authState.userProfile?.userId?.profilePicture && (
                 <img
                   className={styles.userProfile}
-                  src={`${BASE_URL}/${authState.userProfile.userId.profilePicture}`}
+                  src={mediaUrl(authState.userProfile.userId.profilePicture)}
                   alt="Your profile"
                 />
               )}
@@ -151,7 +151,7 @@ function Dashboard() {
                     <div className={styles.singleCard_profileContainer}>
 
                       {/* USER PROFILE PICTURE */}
-                      <img className={styles.userProfile} src={`${BASE_URL}/${post.userId.profilePicture}`} alt="" />
+                      <img className={styles.userProfile} src={mediaUrl(post.userId.profilePicture)} alt="" />
                       <div className={styles.singleCard_content}>
 
                         <div style={{
@@ -162,7 +162,7 @@ function Dashboard() {
 
                           {/* WHEN YOU CLICK THE NAME OF AUTHOR ON HIS POST, IT OPENS THE PROFILE PAGE OF THAT USER */}
                           <p onClick={() => {
-                            router.push(`/view_profile/${post.userId.username}`)
+                            router.push(`/view_profile/${encodeURIComponent(post.userId.username)}`)
                           }}
                             className={styles.singleCard_Name}>{post.userId.name}</p>
 
@@ -192,20 +192,20 @@ function Dashboard() {
                           /\.(mp4|webm|mov)$/i.test(post.media) ? (
                             <video
                               className={styles.singleCard_image}
-                              src={`${BASE_URL}/${post.media}`}
+                              src={mediaUrl(post.media)}
                               controls
                               style={{ maxWidth: "100%" }}
                             />
                           ) : /\.(jpe?g|png|gif|webp)$/i.test(post.media) ? (
                             <div className={styles.singleCard_image}>
                               <img
-                                src={`${BASE_URL}/${post.media}`}
+                                src={mediaUrl(post.media)}
                                 alt="Uploaded post media"
                               />
                             </div>
                           ) : (
                             <a
-                              href={`${BASE_URL}/${post.media}`}
+                              href={mediaUrl(post.media)}
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -318,7 +318,7 @@ function Dashboard() {
 
                         <div className={styles.singleComment_profileContainer}>
 
-                          {/* <img src={`${BASE_URL}/${comment.userId.profilePicture}`} alt="" /> */}
+                          {/* Add a commenter's profile image here if needed. */}
 
                           <div>
                             <p style={{ fontWeight: "bold", fontSize: "1rem" }}>{comment.userId.name}</p>

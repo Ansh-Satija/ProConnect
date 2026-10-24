@@ -4,7 +4,7 @@ import UserLayout from '@/layout/UserLayout';
 import DashboardLayout from "@/layout/DashbaordLayout";
 import { markNotificationAsRead, markAllNotificationsAsRead } from "@/config/redux/action/notificationAction";
 import styles from "./index.module.css"
-import { BASE_URL } from "@/config";
+import { mediaUrl } from "@/config";
 import { useRouter } from "next/router";
 
 export default function Notifications() {
@@ -31,7 +31,7 @@ export default function Notifications() {
         }
         else if (notification.type === "CONNECTION_ACCEPTED") {
             router.push(
-                `/view_profile/${notification.sender.username}`
+                `/view_profile/${encodeURIComponent(notification.sender.username)}`
             );
         }
         else if((notification.type === "LIKE" || notification.type === "COMMENT") && notification.post?._id){
@@ -83,16 +83,16 @@ export default function Notifications() {
                                 <div className={styles.content}>
 
                                     <img
-                                        src={`${BASE_URL}/${notification.sender.profilePicture}`} alt="profilePicture"
+                                        src={mediaUrl(notification.sender?.profilePicture)} alt="profilePicture"
                                         onClick={(e) => {
-                                            router.push(`/view_profile/${notification.sender.username}`)
+                                            router.push(`/view_profile/${encodeURIComponent(notification.sender.username)}`)
                                             e.stopPropagation()
                                         }}
                                     />
                                     <p
                                         className={styles.sender}
                                         onClick={(e) => {
-                                            router.push(`/view_profile/${notification.sender.username}`)
+                                            router.push(`/view_profile/${encodeURIComponent(notification.sender.username)}`)
                                             e.stopPropagation()
                                         }}
                                     >

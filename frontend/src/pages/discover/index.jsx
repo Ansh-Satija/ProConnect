@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/config';
+import { mediaUrl } from '@/config';
 import { getAllUsers, searchUsers } from '@/config/redux/action/authAction';
 import DashboardLayout from '@/layout/DashbaordLayout'
 import UserLayout from '@/layout/UserLayout'
@@ -70,12 +70,12 @@ function DiscoverPage() {
                                         key={user._id}
                                         className={styles.userCard}
                                         onClick={() => {
-                                            router.push(`/view_profile/${user.username}`)
+                                            router.push(`/view_profile/${encodeURIComponent(user.username)}`)
                                         }}
                                     >
                                         <img
                                             className={styles.userCard_image}
-                                            src={`${BASE_URL}/${user.profilePicture}`}
+                                            src={mediaUrl(user.profilePicture)}
                                             alt="Profile"
                                         />
 

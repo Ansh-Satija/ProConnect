@@ -4,7 +4,7 @@ import UserLayout from '@/layout/UserLayout'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import styles from "./index.module.css"
-import { BASE_URL } from '@/config';
+import { mediaUrl } from '@/config';
 import { useRouter } from 'next/router';
 
 function MyConnectionsPage() {
@@ -54,7 +54,7 @@ function MyConnectionsPage() {
                         pendingRequests.map((user, index) => {
                             return (
                                 <div onClick={() => {
-                                    router.push(`/view_profile/${user.userId.username}`)
+                                    router.push(`/view_profile/${encodeURIComponent(user.userId.username)}`)
                                 }}
                                     className={styles.userCard} key={index}>
 
@@ -66,7 +66,7 @@ function MyConnectionsPage() {
                                     }}
                                     >
                                         <div className={styles.profilePicture}>
-                                            <img src={`${BASE_URL}/${user.userId.profilePicture}`} alt="Your Profile Picture" />
+                                            <img src={mediaUrl(user.userId?.profilePicture)} alt="Profile picture" />
                                         </div>
 
                                         <div className={styles.userInfo}>
@@ -114,7 +114,7 @@ function MyConnectionsPage() {
 
                         return (
                             <div onClick={() => {
-                                router.push(`/view_profile/${user.connectedUser.username}`)
+                                router.push(`/view_profile/${encodeURIComponent(user.connectedUser.username)}`)
                             }}
                                 className={styles.userCard} key={index}>
 
@@ -126,7 +126,7 @@ function MyConnectionsPage() {
                                 }}
                                 >
                                     <div className={styles.profilePicture}>
-                                            <img src={`${BASE_URL}/${user.connectedUser.profilePicture}`} alt="Your Profile Picture" />
+                                            <img src={mediaUrl(user.connectedUser?.profilePicture)} alt="Profile picture" />
                                     </div>
 
                                     <div className={styles.userInfo}>
@@ -159,7 +159,7 @@ function MyConnectionsPage() {
 
                                 return (
                                     <div className={styles.networkSuggestion} key={user._id}>
-                                        <img src={`${BASE_URL}/${user.profilePicture}`} alt="" />
+                                        <img src={mediaUrl(user.profilePicture)} alt="" />
                                         <div className={styles.networkUserInfo}>
                                             <h3>{user.name}</h3>
                                             <p>@{user.username}</p>

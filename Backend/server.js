@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
+import multer from "multer"
 
 
 // BASIC REQUIRED CODE 
@@ -45,4 +46,14 @@ const start = async () => {
 start().catch((error) => {
     console.error("Failed to start server:", error.message);
     process.exit(1);
+});
+
+
+// MIDDLEWARE FOR FILE UPLOAD TO CLOUDINARY
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        const tooBig = err.code === "LIMIT_FILE_SIZE";
+        return res.status(tooBig ? 413 : 400).json({ message: tooBig ? "File too large" : err.message });
+    }
+    return res.status(err.status || 500).json({ message: err.message });
 });

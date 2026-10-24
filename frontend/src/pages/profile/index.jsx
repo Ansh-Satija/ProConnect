@@ -1,4 +1,4 @@
-import { BASE_URL, clientServer } from '@/config';
+import { clientServer, mediaUrl } from '@/config';
 import { getAboutUser } from '@/config/redux/action/authAction';
 import { getAllPosts } from '@/config/redux/action/postAction';
 import UserLayout from '@/layout/UserLayout'
@@ -158,7 +158,7 @@ export default function ProfilePage() {
                                 }}
                                 hidden type="file" id="profilePictureUpload"
                             />
-                            <img src={`${BASE_URL}/${userProfile.userId?.profilePicture || 'default.jpg'}`} alt="Profile" />
+                            <img src={mediaUrl(userProfile.userId?.profilePicture)} alt="Profile" />
 
                         </div>
 
@@ -293,7 +293,7 @@ export default function ProfilePage() {
                                                     <p>{post?.body}</p>
 
                                                     <div className={styles.card_profileContainer}>
-                                                        {post?.media ? <img src={`${BASE_URL}/${post.media}`}
+                                                        {post?.media ? <img src={mediaUrl(post.media)}
                                                             className={styles.postImage} alt="" />
                                                             :
                                                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>

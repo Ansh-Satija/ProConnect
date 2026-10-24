@@ -5,32 +5,22 @@ import { activeCheck, createPost, getAllPosts, deletePost, commentPost, getComme
      
 // import {getMyComments} from "../controllers/posts.controller.js" (FOR FUTURE SCOPE)
 
-import multer from "multer"
-import { diskStorage } from "multer";
+// USING CLOUDINARY STORAGE FOR STORING FILES/ UPLOADS
+import { uploadPostMedia } from "../middlewares/upload.middleware.js";
 
 // IMPORT AUTH MIDDLEWARE FUNCTION
 import {authenticateUser} from "../middlewares/auth.middleware.js"
 
 const router = Router();
 
-// CREATE MULTER STORAGE TO BE USED TO HANDLE MEDIA (PHOTOS, VIDEOS) UPLOADED IN POSTS BY THE USER
-const storage = multer.diskStorage({
-    destination: (req,file,cb) => {
-        cb(null, 'uploads/')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname)
-    }
-});
 
-const upload = multer({storage: storage})
 
 // <----- POSTS ROUTES -----> 
 // TEST ROUTE
 router.route('/').get(activeCheck);
 
 // CREATE NEW POST 
-router.route("/post").post(upload.single('media'), authenticateUser, createPost);
+router.route("/post").post(uploadPostMedia.single('media'), authenticateUser, createPost);
 
 // GET ALL POSTS
 router.route("/posts").get(authenticateUser, getAllPosts);

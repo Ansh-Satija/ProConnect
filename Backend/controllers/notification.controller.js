@@ -1,6 +1,6 @@
 import Notification from "../models/notification.model.js";
 
-// TO GET ALL NOTIFICATIONS RECEIVED BY THE LOGGED-IN USER
+// 1. TO GET ALL NOTIFICATIONS RECEIVED BY THE LOGGED-IN USER
 export const getNotifications = async (req, res) => {
 
     try {
@@ -34,7 +34,7 @@ export const getNotifications = async (req, res) => {
     }
 }
 
-// TO MARK A NOTIFICATION AS READ I.E. CHANGE THE "ISREAD" FIELD TO TRUE IN ITS DOC IN DB
+// 2. TO MARK A NOTIFICATION AS READ I.E. CHANGE THE "ISREAD" FIELD TO TRUE IN ITS DOC IN DB
 export const markNotificationAsRead = async (req, res) => {
 
     const { notificationId } = req.params;
@@ -63,7 +63,7 @@ export const markNotificationAsRead = async (req, res) => {
     }
 }
 
-// TO MARK ALL NOTIFICATIONS AS READ AT ONCE
+// 3. TO MARK ALL NOTIFICATIONS AS READ AT ONCE
 export const markAllNotificationsAsRead = async (req, res) => {
 
     try {

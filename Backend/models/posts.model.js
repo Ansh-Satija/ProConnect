@@ -39,6 +39,16 @@ const postSchema = new mongoose.Schema({
     fileType: {
         type: String,
         default: '' 
+    },
+
+    mediaPublicId: {
+        type: String,
+        default: ''
+    },
+
+    mediaResourceType: {
+        type: String,
+        default: ''
     }
 });
 

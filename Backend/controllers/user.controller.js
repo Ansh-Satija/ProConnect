@@ -8,7 +8,9 @@ import crypto from "crypto"
 import PDFDocument from "pdfkit"
 import fs from "fs"
 
-// REGISTER NEW USER
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
+
+// 1. REGISTER NEW USER
 export const register = async (req, res) => {
     try {
         const { name, email, password, username } = req.body;
@@ -64,7 +66,7 @@ export const register = async (req, res) => {
     }
 }
 
-// LOGIN USER - FIRST CHECK IF USER REGISTERED OR NOT THEN CHECK IF CORRECT PASSWORD OR NOT
+// 2. LOGIN USER - FIRST CHECK IF USER REGISTERED OR NOT THEN CHECK IF CORRECT PASSWORD OR NOT
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -99,25 +101,31 @@ export const login = async (req, res) => {
     }
 }
 
-// UPLOAD PROFILE PICTURE FEATURE
+// 3. UPLOAD PROFILE PICTURE FEATURE
 export const uploadProfilePicture = async (req, res) => {
-
     try {
         const user = req.user;
 
-        user.profilePicture = req.file.filename;
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
+        const result = await uploadToCloudinary(req.file.buffer, "proconnect-app/avatars");
+        const oldPublicId = user.profilePicturePublicId;
+
+        user.profilePicture = result.secure_url;
+        user.profilePicturePublicId = result.public_id;
         await user.save();
 
-        return res.json({ message: "Profile picture updated" })
+        // REMOVE THE PREVIOUS AVATAR (BEST EFFORT)
+        deleteFromCloudinary(oldPublicId).catch((err) => console.log("CLOUDINARY DELETE FAILED:", err.message));
 
+        return res.json({ message: "Profile picture updated" })
     }
     catch (err) {
         res.status(500).json({ message: err.message })
     }
 }
 
-// UPDATE BASIC USER DETAILS (ONLY FOR UPDATING USERNAME AND EMAIL IN THE USER DOC IN DB)
+// 4. UPDATE BASIC USER DETAILS (ONLY FOR UPDATING USERNAME AND EMAIL IN THE USER DOC IN DB)
 export const updateUserProfile = async (req, res) => {
     try {
         const user = req.user;
@@ -173,7 +181,7 @@ export const updateUserProfile = async (req, res) => {
     }
 };
 
-// TO GET THE PROFILE DETAILS FOR GIVEN USER
+// 5. TO GET THE PROFILE DETAILS FOR GIVEN USER
 export const getUserAndProfile = async (req, res) => {
     try {
         const user = req.user;
@@ -190,7 +198,7 @@ export const getUserAndProfile = async (req, res) => {
     }
 }
 
-// UPDATE PROFILE DOC'S DETAILS IN DB WITH DATA GIVEN BY USER FROM FRONTEND
+// 6. UPDATE PROFILE DOC'S DETAILS IN DB WITH DATA GIVEN BY USER FROM FRONTEND
 export const updateProfileData = async (req, res) => {
     try {
         console.log("UPDATE PROFILE CONTROLLER HIT");
@@ -228,7 +236,7 @@ export const updateProfileData = async (req, res) => {
     }
 };
 
-// GET ALL USER PROFILES PRESENT IN DB (FETCHES ALL DOCS CREATED IN PROFILES COLLECTION TILL NOW)
+// 7. GET ALL USER PROFILES PRESENT IN DB (FETCHES ALL DOCS CREATED IN PROFILES COLLECTION TILL NOW)
 export const getAllUserProfiles = async (req, res) => {
     try {
         const profiles = await Profile.find().populate('userId', 'name username email profilePicture');
@@ -240,34 +248,48 @@ export const getAllUserProfiles = async (req, res) => {
     }
 }
 
-// DOWNLOAD PROFILE DATA OF USER AS PDF (FEATURE) - 
+// 8. DOWNLOAD PROFILE DATA OF USER AS PDF (FEATURE) -
 export const downloadProfile = async (req, res) => {
+    try {
+        const userProfile = await Profile.findOne({ userId: req.query.id })
+            .populate('userId', 'name username email profilePicture')
 
-    const user_id = req.query.id;
+        if (!userProfile) return res.status(404).json({ message: "Profile Not Found" });
 
-    const userProfile = await Profile.findOne({ userId: user_id })
-        .populate('userId', 'name username email profilePicture')
+        const pdfBuffer = await convertUserDataToPDF(userProfile);
 
-    if (!userProfile) return res.status(404).json({ message: "Profile Not Found" });
-    let outputPath = await convertUserDataToPDF(userProfile);
-
-    return res.json({ message: outputPath });
+        res.set({ "Content-Type": "application/pdf", "Content-Disposition": 'inline; filename="profile.pdf"' });
+        return res.send(pdfBuffer);
+    }
+    catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
 }
 
-// FUNCTION BEING USED IN downloadProfile CONTROLLER FUNCTION ABOVE TO CONVERT USER'S PROFILE DATA INTO PDF:
+const getAvatarBuffer = async (profilePicture) => {
+    try {
+        if (profilePicture && profilePicture.startsWith("http")) {
+            const response = await fetch(profilePicture);
+            if (response.ok) return Buffer.from(await response.arrayBuffer());
+        }
+    } catch (err) { /* FALL THROUGH TO DEFAULT AVATAR */ }
+    return fs.readFileSync("assets/default.jpg");
+};
+
+
+// 9. FUNCTION BEING USED IN downloadProfile CONTROLLER FUNCTION ABOVE TO CONVERT USER'S PROFILE DATA INTO PDF:
 const convertUserDataToPDF = async (userData) => {
+    const avatar = await getAvatarBuffer(userData.userId.profilePicture);
+
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument();
-        const outputPath = crypto.randomBytes(32).toString("hex") + ".pdf";
-        const stream = fs.createWriteStream("uploads/" + outputPath);
-
-        stream.on("finish", () => resolve(outputPath));
-        stream.on("error", reject);
+        const chunks = [];
+        doc.on("data", (chunk) => chunks.push(chunk));
+        doc.on("end", () => resolve(Buffer.concat(chunks)));
         doc.on("error", reject);
-        doc.pipe(stream);
 
-        const picPath = `uploads/${userData.userId.profilePicture}`;
-        doc.image(fs.existsSync(picPath) ? picPath : "uploads/default.jpg", { width: 100 });
+        doc.image(avatar, { width: 100 });
+
         doc.moveDown(2);
 
         doc.fontSize(14).text(`Name: ${userData.userId.name}`);
@@ -300,7 +322,7 @@ const convertUserDataToPDF = async (userData) => {
 
 // <--- CONNECTION REQUEST CONTROLLERS --->
 
-// CONNECTION REQUEST FUNCTIONALITY: TO SEND A CONNECTION REQUEST
+// 10. CONNECTION REQUEST FUNCTIONALITY: TO SEND A CONNECTION REQUEST
 export const sendConnectionRequest = async (req, res) => {
 
     const { connectionId } = req.body;  // FRONTEND SENDS THE ID OF USER TO WHOM LOGGED-IN USER IS SENDING THE CONNECTION REQUEST (IN REQ.BODY)
@@ -367,7 +389,7 @@ export const sendConnectionRequest = async (req, res) => {
     }
 }
 
-// TO DISPLAY ALL CONNECTION REQUESTS SENT BY CURR LOGGED IN USER 
+// 11. TO DISPLAY ALL CONNECTION REQUESTS SENT BY CURR LOGGED IN USER
 export const getMyConnectionRequests = async (req, res) => {
 
     try {
@@ -385,7 +407,7 @@ export const getMyConnectionRequests = async (req, res) => {
     }
 }
 
-// TO DISPLAY ALL CONNECTION REQUESTS RECEIVED BY CURR USER
+// 12. TO DISPLAY ALL CONNECTION REQUESTS RECEIVED BY CURR USER
 export const whatAreMyConnections = async (req, res) => {
 
     try {
@@ -402,7 +424,7 @@ export const whatAreMyConnections = async (req, res) => {
     }
 }
 
-// TO ACCEPT OR REJECT A CONNECTION REQUEST
+// 13. TO ACCEPT OR REJECT A CONNECTION REQUEST
 export const acceptConnectionRequest = async (req, res) => {
     const { requestId, action_type } = req.body;
 
@@ -442,7 +464,7 @@ export const acceptConnectionRequest = async (req, res) => {
     }
 }
 
-// FOR "/DISCOVER" PAGE - TO FETCH USER PROFILE DETAILS FROM DB USING USERNAME
+// 14. FOR "/DISCOVER" PAGE - TO FETCH USER PROFILE DETAILS FROM DB USING USERNAME
 export const getUserProfileAndUserBasedOnUsername = async (req, res) => {
     const { username } = req.query;
 
@@ -464,7 +486,7 @@ export const getUserProfileAndUserBasedOnUsername = async (req, res) => {
     }
 }
 
-// GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT (BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION)
+// 15. GET SUGGESTED USERS ON THE RIGHT SIDEBAR OF DASHBOARDLAYOUT (BUILD YOUR NETWORK/ PEOPLE YOU MAY KNOW SECTION)
 export const getSuggestedUsers = async (req, res) => {
 
     try {
@@ -485,7 +507,7 @@ export const getSuggestedUsers = async (req, res) => {
         });
     }
 };
-// FOR SEARCHBAR: TO FIND A USER BY NAME/ USERNAME
+// 16. FOR SEARCHBAR: TO FIND A USER BY NAME/ USERNAME
 export const searchUsers = async (req, res) => {
 
     try {

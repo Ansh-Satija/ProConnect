@@ -6,35 +6,40 @@ import Comment from "../models/comments.model.js"
 import Notification from "../models/notification.model.js"
 import Like from "../models/like.model.js"
 
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
+
 // TEST ROUTE
 export const activeCheck = async (req, res) => {
     return res.json({ message: "RUNNING" })
 }
 
-// TO CREATE A NEW POST 
+// 1. TO CREATE A NEW POST
 export const createPost = async (req, res) => {
-
     try {
         const user = req.user;
 
-        const post = new Post({
-            userId: user._id,
-            body: req.body.body,
-            media: (req.file != undefined) ? req.file.filename : "",
-            fileType: (req.file != undefined) ? req.file.mimetype.split("/")[1] : ""
-        });
+        let media = "", mediaPublicId = "", mediaResourceType = "", fileType = "";
+
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, "proconnect-app/posts");
+            media = result.secure_url;
+            mediaPublicId = result.public_id;
+            mediaResourceType = result.resource_type;
+            fileType = req.file.mimetype.split("/")[1];
+        }
+
+        const post = new Post({ userId: user._id, body: req.body.body, media, mediaPublicId, mediaResourceType, fileType });
 
         await post.save();
         return res.status(200).json({ message: "Post Created" })
     }
-
     catch (err) {
         return res.status(500).json({ message: err.message })
     }
-
 }
 
-// TO GET ALL POSTS (ALL DOCS IN POSTS COLLECTION)
+
+// 2. TO GET ALL POSTS (ALL DOCS IN POSTS COLLECTION)
 export const getAllPosts = async (req, res) => {
 
     try {
@@ -64,7 +69,7 @@ export const getAllPosts = async (req, res) => {
     }
 }
 
-// TO DELETE A POST (ONLY THE AUTHOR OF THE POST CAN DELETE OWN POST, NOBODY ELSE)
+// 3. TO DELETE A POST (ONLY THE AUTHOR OF THE POST CAN DELETE OWN POST, NOBODY ELSE)
 export const deletePost = async (req, res) => {
     const { post_id } = req.body;
 
@@ -89,10 +94,14 @@ export const deletePost = async (req, res) => {
 
         // TO DELETE ALL THE COMMENTS, LIKES AND NOTIFICATION INFO RELATED TO THE DELETED POST - 
         await Promise.all([
-            Comment.deleteMany({postId: post._id}),
-            Like.deleteMany({postId: post._id}),
+            Comment.deleteMany({ postId: post._id }),
+            Like.deleteMany({ postId: post._id }),
             Notification.deleteMany({ post: post._id })
         ])
+
+        // DELETE THE FILE FROM CLOUDINARY TOO (BEST EFFORT: DON'T FAIL THE REQUEST IF THIS FAILS)
+        try { await deleteFromCloudinary(post.mediaPublicId, post.mediaResourceType) }
+        catch (err) { console.log("CLOUDINARY DELETE FAILED:", err.message) }
 
         return res.json({ message: "Post Deleted" })
     }
@@ -105,7 +114,7 @@ export const deletePost = async (req, res) => {
 
 // <--- CRUD FUNCTIONALITY FOR COMMENTS --->
 
-// CREATE A COMMENT UNDER A POST
+// 4. CREATE A COMMENT UNDER A POST
 export const commentPost = async (req, res) => {
     const { post_id, commentBody } = req.body;
 
@@ -147,7 +156,7 @@ export const commentPost = async (req, res) => {
     }
 }
 
-// TO GET/DISPLAY ALL COMMENTS UNDER A SPECIFIC POST
+// 5. TO GET/DISPLAY ALL COMMENTS UNDER A SPECIFIC POST
 export const getCommentsByPost = async (req, res) => {
     const { post_id } = req.query; //NOT REQ.BODY AS IT IS A GET REQUEST NOT POST REQUEST
 
@@ -161,7 +170,7 @@ export const getCommentsByPost = async (req, res) => {
         const comments = await Comment
             .find({ postId: post_id })
             .populate("userId", "name username profilePicture")
-            .sort({_id: -1});
+            .sort({ _id: -1 });
 
         return res.json(comments)
     }
@@ -171,7 +180,7 @@ export const getCommentsByPost = async (req, res) => {
     }
 }
 
-// TO DELETE A COMMENT (ONLY AUTHOR OF COMMENT CAN DELETE OWN COMMENT)
+// 6. TO DELETE A COMMENT (ONLY AUTHOR OF COMMENT CAN DELETE OWN COMMENT)
 export const deleteComment = async (req, res) => {
     const { comment_id } = req.body;
 
@@ -199,7 +208,7 @@ export const deleteComment = async (req, res) => {
     }
 }
 
-// TO TOGGLE A LIKE ON A POST
+// 7. TO TOGGLE A LIKE ON A POST
 export const incrementLikes = async (req, res) => {
 
     const { post_id } = req.body;

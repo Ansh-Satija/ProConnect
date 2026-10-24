@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import { setTokenIsThere } from '@/config/redux/reducer/authReducer';
 import { useDispatch, useSelector } from 'react-redux';
 import { acceptConnection, getConnectionRequest, getMyConnectionRequests, getSuggestedUsers, sendConnectionRequest } from '@/config/redux/action/authAction';
-import { BASE_URL } from '@/config';
+import { mediaUrl } from '@/config';
 
 export default function DashboardLayout({ children }) {
 
@@ -192,13 +192,13 @@ export default function DashboardLayout({ children }) {
                   key={user._id}
                   className={styles.suggestedProfile}
                   onClick={() => {
-                    router.push(`/view_profile/${user.username}`)
+                    router.push(`/view_profile/${encodeURIComponent(user.username)}`)
                   }}
                 >
 
                   {/* OPEN THE OTHER USERS PROFILE PAGE WHEN LOGGED-IN USERS CLICKS ON DP OR NAME FROM BUILD YOUR NETWORK SECTION */}
                   <img
-                    src={`${BASE_URL}/${user.profilePicture}`}
+                    src={mediaUrl(user.profilePicture)}
                     alt="Profile Picture"
                   // className={styles.userDetails}
                   // onClick={() => {
