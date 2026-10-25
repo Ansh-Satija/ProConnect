@@ -41,105 +41,76 @@ function MyConnectionsPage() {
         <UserLayout>
 
             <DashboardLayout>
-                <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                <main className={styles.connectionsPage}>
+                    <header className={styles.pageHeading}>
+                        <span className={styles.eyebrow}>YOUR PROFESSIONAL CIRCLE</span>
+                        <h1>Connections</h1>
+                        <p>Manage your requests and stay close to the people in your network.</p>
+                    </header>
 
-                    <h2>My Connections</h2>
-
-                    {pendingRequests.length === 0 && <h1>No Connection Requests</h1>}
-
-
-                    {/* IF LOGGED-IN USER HAS REJECTED A CONNECTION REQUEST, DON'T SHOW IT IN THIS PAGE */}
-                    {/* ONLY SHOW PENDING AND ACCEPTED REQUESTS */}
-                    {
-                        pendingRequests.map((user, index) => {
-                            return (
-                                <div onClick={() => {
-                                    router.push(`/view_profile/${encodeURIComponent(user.userId.username)}`)
-                                }}
-                                    className={styles.userCard} key={index}>
-
-                                    <div style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "1.2rem",
-                                        justifyContent: "space-between"
-                                    }}
-                                    >
-                                        <div className={styles.profilePicture}>
-                                            <img src={mediaUrl(user.userId?.profilePicture)} alt="Profile picture" />
-                                        </div>
-
-                                        <div className={styles.userInfo}>
-                                            <h3>{user.userId.name}</h3>
-                                            <p>{user.userId.username}</p>
-                                        </div>
-
-                                        {/* REJECT/ IGNORE REQUEST BTN */}
-                                        <button
-                                            className={styles.rejectButton}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-
-                                                dispatch(acceptConnection({
-                                                    token: localStorage.getItem("token"),
-                                                    connectionId: user._id,
-                                                    action: "reject"
-                                                }))
-                                            }}
-                                        >Ignore</button>
-
-                                        <button
-                                            className={styles.connectedButton}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-
-                                                dispatch(acceptConnection({
-                                                    token: localStorage.getItem("token"),
-                                                    connectionId: user._id,
-                                                    action: "accept"
-                                                }))
-                                            }}
-                                        >Accept</button>
-                                    </div>
-
-                                </div>
-                            )
-                        })
-
-                    }
-
-                    {/* SHOW ALL ACCEPTED REQUESTS HERE */}
-                    <h2>My Network</h2>
-                    {acceptedConnections.map((user, index) => {
-
-                        return (
-                            <div onClick={() => {
-                                router.push(`/view_profile/${encodeURIComponent(user.connectedUser.username)}`)
-                            }}
-                                className={styles.userCard} key={index}>
-
-                                <div style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "1.2rem",
-                                    justifyContent: "space-between"
-                                }}
+                    <section className={styles.connectionSection}>
+                        <div className={styles.sectionHeader}>
+                            <div><h2>Connection requests</h2><p>People who would like to connect with you</p></div>
+                            <span className={styles.requestCount}>{pendingRequests.length}</span>
+                        </div>
+                        {pendingRequests.length === 0 && (
+                            <div className={styles.emptyState}><span aria-hidden="true">✓</span><p>You’re all caught up. New requests will show up here.</p></div>
+                        )}
+                        <div className={styles.connectionList}>
+                            {pendingRequests.map((user) => (
+                                <article
+                                    onClick={() => router.push(`/view_profile/${encodeURIComponent(user.userId.username)}`)}
+                                    onKeyDown={(event) => event.target === event.currentTarget && event.key === "Enter" && router.push(`/view_profile/${encodeURIComponent(user.userId.username)}`)}
+                                    tabIndex={0}
+                                    className={styles.userCard}
+                                    key={user._id}
                                 >
-                                    <div className={styles.profilePicture}>
-                                            <img src={mediaUrl(user.connectedUser?.profilePicture)} alt="Profile picture" />
+                                    <div className={styles.userIdentity}>
+                                        <div className={styles.profilePicture}><img src={mediaUrl(user.userId?.profilePicture)} alt="Profile picture" /></div>
+                                        <div className={styles.userInfo}><h3>{user.userId.name}</h3><p>@{user.userId.username}</p></div>
                                     </div>
-
-                                    <div className={styles.userInfo}>
-                                            <h3>{user.connectedUser.name}</h3>
-                                            <p>{user.connectedUser.username}</p>
+                                    <div className={styles.requestActions}>
+                                        <button className={styles.rejectButton} onClick={(e) => {
+                                            e.stopPropagation();
+                                            dispatch(acceptConnection({ token: localStorage.getItem("token"), connectionId: user._id, action: "reject" }));
+                                        }}>Ignore</button>
+                                        <button className={styles.connectedButton} onClick={(e) => {
+                                            e.stopPropagation();
+                                            dispatch(acceptConnection({ token: localStorage.getItem("token"), connectionId: user._id, action: "accept" }));
+                                        }}>Accept</button>
                                     </div>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
 
-                                </div>
-
+                    <section className={styles.connectionSection}>
+                        <div className={styles.sectionHeader}>
+                            <div><h2>My network</h2><p>People you’re connected with</p></div>
+                            <span className={styles.requestCount}>{acceptedConnections.length}</span>
+                        </div>
+                        {acceptedConnections.length === 0 ? (
+                            <div className={styles.emptyState}><span aria-hidden="true">↗</span><p>Your network is just getting started. Accept a request or discover new people.</p></div>
+                        ) : (
+                            <div className={styles.connectionList}>
+                                {acceptedConnections.map((user) => (
+                                    <article
+                                        onClick={() => router.push(`/view_profile/${encodeURIComponent(user.connectedUser.username)}`)}
+                                        onKeyDown={(event) => event.target === event.currentTarget && event.key === "Enter" && router.push(`/view_profile/${encodeURIComponent(user.connectedUser.username)}`)}
+                                        tabIndex={0}
+                                        className={styles.userCard}
+                                        key={user._id}
+                                    >
+                                        <div className={styles.userIdentity}>
+                                            <div className={styles.profilePicture}><img src={mediaUrl(user.connectedUser?.profilePicture)} alt="Profile picture" /></div>
+                                            <div className={styles.userInfo}><h3>{user.connectedUser.name}</h3><p>@{user.connectedUser.username}</p></div>
+                                        </div>
+                                        <span className={styles.viewProfile}>View profile <span aria-hidden="true">→</span></span>
+                                    </article>
+                                ))}
                             </div>
-                        )
-
-                    })}
+                        )}
+                    </section>
 
                     <section className={styles.buildYourNetwork}>
                         <h2>Build Your Network</h2>
@@ -182,7 +153,7 @@ function MyConnectionsPage() {
                             })}
                         </div>
                     </section>
-                </div>
+                </main>
             </DashboardLayout>
 
         </UserLayout>

@@ -1,174 +1,49 @@
-.container {
-    padding: 1rem;
-    background: rgb(255, 253, 253);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
+.container { width: 100%; max-width: 980px; margin: 0 auto; padding: .25rem 0; color: #26374c; }
+.backDropContainer { position: relative; height: 14rem; margin-bottom: 4.7rem; border-radius: 1rem; background: #2868a7; }
+.backDropContainer::before, .backDropContainer::after { position: absolute; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; content: ""; pointer-events: none; }
+.backDropContainer::before { top: -4rem; right: 8%; width: 18rem; height: 18rem; background: rgba(255,255,255,.08); }
+.backDropContainer::after { top: 1.5rem; right: 18%; width: 9rem; height: 9rem; background: rgba(255,255,255,.07); }
+.backDropContainer > img { position: absolute; bottom: -4.1rem; left: 2rem; z-index: 2; width: 8.5rem; height: 8.5rem; border: 5px solid white; border-radius: 50%; background: #e8f1fa; object-fit: cover; box-shadow: 0 8px 20px rgba(30,51,79,.22); }
+.profileContainer_details { padding: 0; }
+.profileContainer_flex { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(240px, .75fr); align-items: start; gap: 1rem; }
+.profileMain { min-width: 0; }
+.profileTitleRow { display: flex; min-height: 3rem; align-items: center; flex-wrap: wrap; gap: .75rem; margin-bottom: .75rem; }
+.profileTitleRow h1 { color: #202c3c; font-size: 1.55rem; font-weight: 750; letter-spacing: -.035em; }
+.profileTitleRow p { color: #718096; font-size: .86rem; }
+.profileActions { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: 1rem; }
+.connectBtn, .connectedButton, .resumeButton { display: inline-flex; min-height: 2.45rem; align-items: center; justify-content: center; gap: .45rem; padding: .55rem .9rem; border: 1px solid #2868c7; border-radius: .55rem; font-size: .83rem; font-weight: 650; cursor: pointer; transition: background 150ms ease, color 150ms ease, border-color 150ms ease; }
+.connectBtn { color: white; background: #2868c7; }
+.connectBtn:hover { border-color: #2059ac; background: #2059ac; }
+.connectedButton { border-color: #b8cee4; color: #2868a7; background: #f5faff; cursor: default; }
+.resumeButton { position: relative; border-color: #d1dbe6; color: #47586e; background: white; }
+.resumeButton:hover { border-color: #9db7d0; color: #2868a7; background: #f5faff; }
+.resumeButton svg { width: 1.1rem; height: 1.1rem; }
+.resumeButton:focus-visible, .connectBtn:focus-visible { outline: 3px solid #4d8ed1; outline-offset: 2px; }
+.profileIntro { padding: 1rem; border: 1px solid #dce6f1; border-radius: .85rem; background: white; box-shadow: 0 5px 16px rgba(45,72,110,.04); }
+.profileIntro p { color: #4c5b70; font-size: .94rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rightColumn { position: sticky; top: 6rem; min-width: 0; padding: 1rem; border: 1px solid #dce6f1; border-radius: .9rem; background: white; box-shadow: 0 7px 20px rgba(45,72,110,.055); }
+.rightColumn > h3 { margin-bottom: .75rem; color: #293a50; font-size: 1.05rem; }
+.emptyActivity { color: #77869a; font-size: .84rem; line-height: 1.5; }
+.postCard { margin-top: .65rem; padding: .75rem; border: 1px solid #e6ecf3; border-radius: .7rem; background: #fbfdff; }
+.card { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.card > p { min-width: 0; color: #4d5d72; font-size: .84rem; line-height: 1.5; overflow-wrap: anywhere; }
+.card_profileContainer { display: flex; flex: 0 0 auto; }
+.card_profileContainer > img { width: 3.4rem; height: 3.4rem; border: 1px solid #e0e8f1; border-radius: .55rem; object-fit: cover; }
+.workHistory { margin-top: 1rem; padding: 1.05rem; border: 1px solid #dce6f1; border-radius: .9rem; background: white; box-shadow: 0 5px 16px rgba(45,72,110,.04); }
+.workHistory > h3 { color: #293a50; font-size: 1.08rem; font-weight: 700; }
+.workHistoryContainer { display: flex; width: 100%; flex-wrap: wrap; gap: .7rem; padding-top: .8rem; }
+.workHistoryCard { min-width: 0; flex: 1 1 13rem; padding: .85rem; border: 1px solid #e4eaf1; border-radius: .7rem; background: #fbfdff; overflow-wrap: anywhere; }
+.workHistoryCard p:first-child { color: #2c3c51; font-size: .9rem; line-height: 1.45; }
+.workHistoryCard p + p { margin-top: .3rem; color: #748398; font-size: .8rem; }
 
-.backDropContainer {
-    width: 100%;
-    height: 30vh;
-    background: url("https://images.pexels.com/photos/7130476/pexels-photo-7130476.jpeg");
-    background-size: cover;
-    background-repeat: no-repeat;
-    position: relative;
-    border-radius: 20px;
-}
-
-/* .backDrop class can also be used for this */
-.backDropContainer>img {
-    width: 10em;
-    height: 10em;
-    object-fit: cover;
-    border-radius: 50%;
-    position: absolute;
-    bottom: -30%;
-    left: 5%;
-    text-align: center;
-}
-
-.rightColumn {
-    flex: 0.3; 
-    border: 1px solid silver; 
-    padding: 0.8rem; 
-    height: fit-content;
-    border-radius: 10px;
-}
-
-.profileContainer_details {
-    padding-top: 4rem;
-}
-
-.card {
-    display: flex;
-    align-items: center;
-    gap: 1.4rem;
-}
-
-.card_profileContainer {
-    display: flex;
-}
-
-.card_profileContainer>img {
-    width: 3.4rem;
-    height: auto;
-    height: 3.4rem;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.connectBtn {
-    padding-inline: 0.8rem;
-    padding-block: 0.3rem;
-    background: rgba(3, 93, 183, 0.905);
-    outline: none;
-    border: none;
-    color: white;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.connectedButton {
-    padding-inline: 0.8rem;
-    padding-block: 0.3rem;
-    border: 1px solid rgba(3, 93, 183, 0.905);
-    outline: none;
-    color: rgba(3, 93, 183, 0.905);
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-
-/* WORK HISTORY SECTION IN USER PROFILE PAGE */
-.workHistory {
-    margin-top: 1rem;
-}
-
-.workHistoryContainer {
-    display: flex;
-    gap: 1.4rem;
-    padding-top: 1.4rem;
-    width: 100%;
-    flex-wrap: wrap;
-}
-
-.workHistoryCard {
-    min-width: fit-content;
-    padding-inline: 2.5rem;
-    padding-block: 1rem;
-    border-radius: 10px;
-    border: 1px solid silver;
-    box-shadow: 10px 10px 15px rgb(173, 173, 173);
-}
-
-.profileContainer_flex {
-    display: flex;
-    gap: 0.7rem;
-}
-
-
-/* DOWNLOAD PROFILE AS A RESUME PDF ICON */
-.resumeButton {
-    position: relative;
-    cursor: pointer;
-}
-
-.resumeButton::after {
-    content: "Download Resume";
-    position: absolute;
-    top: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    
-    background: #333;
-    color: white;
-    padding: 5px 8px;
-    border-radius: 5px;
-    font-size: 0.75rem;
-    
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    transition: opacity 0.2s;
-}
-
-.resumeButton:hover::after {
-    opacity: 1;
-}
-
-/* USING MEDIA QUERIES FOR RESPONSIVENESS */
-@media screen and (max-width: 600px){
-
-    .profileContainer_flex{
-        flex-direction: column;
-    }
-
-    .rightColumn {
-        border: none;
-        padding: 0;
-        margin-top: 1rem;
-    }
-}
-
-@media (max-width: 850px) {
-    .container,
-    .rightColumn,
-    .workHistoryCard { background: #fff; }
-    .profileContainer_flex { flex-direction: column; }
-    .profileContainer_flex > div:first-child { display: contents; }
-    .rightColumn { width: min(92%, 34rem); max-width: 100%; align-self: flex-start; }
-    .workHistoryContainer { align-items: flex-start; }
-    .workHistoryCard { min-width: 0; width: min(92%, 34rem); max-width: 100%; flex: 0 1 auto; overflow-wrap: anywhere; }
-}
-
+@media (max-width: 850px) { .profileContainer_flex { grid-template-columns: minmax(0,1fr); } .rightColumn { position: static; } }
 @media (max-width: 600px) {
-    .container { padding: 0.75rem; gap: 1rem; background: #fff; }
-    .backDropContainer { height: 8rem; border-radius: 14px; }
-    .backDropContainer > img { width: 7rem; height: 7rem; bottom: -38%; left: 1rem; }
-    .profileContainer_details { padding-top: 4.5rem; }
-    .profileContainer_details > div:first-child { flex-wrap: wrap; gap: 0.45rem !important; }
-    .workHistoryContainer { gap: 0.75rem; padding-top: 0.8rem; align-items: flex-start; }
-    .workHistoryCard { min-width: 0; width: fit-content; max-width: 100%; flex: 0 1 auto; padding: 0.85rem; overflow-wrap: anywhere; }
-    .rightColumn { border: 0; padding: 0; margin-top: 0.5rem; }
+  .container { padding: .1rem 0; }
+  .backDropContainer { height: 9rem; margin-bottom: 4.2rem; border-radius: .85rem; }
+  .backDropContainer > img { bottom: -3.6rem; left: 1rem; width: 7rem; height: 7rem; }
+  .profileTitleRow { gap: .6rem; }
+  .profileTitleRow h1 { font-size: 1.3rem; }
+  .profileTitleRow p { font-size: .78rem; }
+  .profileIntro, .workHistory, .rightColumn { padding: .85rem; }
+  .workHistoryCard { flex-basis: 100%; }
 }

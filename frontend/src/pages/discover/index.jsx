@@ -23,50 +23,67 @@ function DiscoverPage() {
     const [searchQuery, setSearchQuery] = useState("");
     // to distinguish between: user has typed something OR user has actually performed a search (CLICKED SEARCH BTN)
     const [searchedQuery, setSearchedQuery] = useState("");
+    const handleSearch = (event) => {
+        event.preventDefault();
+        const query = searchQuery.trim();
+        if (!query) return;
+        dispatch(searchUsers(query));
+        setSearchedQuery(query);
+    };
+
     return (
         <UserLayout>
 
             <DashboardLayout>
-                <div>
-                    <h1>Discover</h1>
+                <main className={styles.discoverPage}>
+                    <header className={styles.pageHeading}>
+                        <span className={styles.eyebrow}>MEET YOUR NEXT CONNECTION</span>
+                        <h1>Discover people</h1>
+                        <p>Find people to learn from, share ideas with, and grow alongside.</p>
+                    </header>
 
-                    {/* SEARCH BAR FOR SEARCH USERS FUNCTIONALITY */}
-                    <div className={styles.searchContainer}>
-
-                        <input type="text" placeholder='Search People...'
-                            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                    <form className={styles.searchContainer} onSubmit={handleSearch} role="search">
+                        <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="10.8" cy="10.8" r="6.8" />
+                            <path d="m16 16 5 5" />
+                        </svg>
+                        <input
+                            type="search"
+                            placeholder="Search by name or username"
+                            aria-label="Search people by name or username"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button
-                            onClick={() => {
-                                if (searchQuery.trim() === "") {
-                                    return;
-                                }
-                                dispatch(searchUsers(searchQuery))
-                                setSearchedQuery(searchQuery);
-                            }}
-                        >Search</button>
-
-                    </div>
+                        <button type="submit">Search people</button>
+                    </form>
 
                     {/* DISPLAY SEARCH RESULTS */}
 
                     {searchedQuery === "" ? (
-
-                        <h2>Search For People By Name or Username</h2>
-
-                    ) : authState.searchResults.length === 0 ? (
-
-                        <p>No Users Found For "{searchedQuery}"</p>
-
-
+                        <section className={styles.emptyState}>
+                            <span className={styles.emptyIcon} aria-hidden="true">⌕</span>
+                            <h2>Start with a search</h2>
+                            <p>Look up people by their name or username to find your next connection.</p>
+                        </section>
+                    ) : !authState.searchResults?.length ? (
+                        <section className={styles.emptyState}>
+                            <span className={styles.emptyIcon} aria-hidden="true">?</span>
+                            <h2>No people found</h2>
+                            <p>We couldn’t find anyone for <strong>“{searchedQuery}”</strong>. Try another name or username.</p>
+                        </section>
                     ) : (
-
-                        <div className={styles.allUserProfile}>
+                        <section className={styles.resultsSection}>
+                            <div className={styles.resultsHeading}>
+                                <h2>People to discover</h2>
+                                <span>{authState.searchResults.length} {authState.searchResults.length === 1 ? "person" : "people"}</span>
+                            </div>
+                            <div className={styles.allUserProfile}>
 
                             {authState.searchResults.map((user) => {
 
                                 return (
-                                    <div
+                                    <button
+                                        type="button"
                                         key={user._id}
                                         className={styles.userCard}
                                         onClick={() => {
@@ -80,17 +97,18 @@ function DiscoverPage() {
                                         />
 
                                         <div>
-                                            <h1>{user.name}</h1>
+                                            <h3>{user.name}</h3>
                                             <p>@{user.username}</p>
                                         </div>
-                                    </div>
+                                        <span className={styles.profileArrow} aria-hidden="true">View profile <span>→</span></span>
+                                    </button>
                                 )
                             })}
 
-                        </div>
+                            </div>
+                        </section>
                     )}
-
-                </div>
+                </main>
             </DashboardLayout>
 
         </UserLayout>

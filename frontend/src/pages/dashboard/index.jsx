@@ -109,38 +109,36 @@ function Dashboard() {
 
             {/* POST CONTAINER */}
             <div className={styles.createPostContainer}>
-
-              {/* TO CREATE A NEW POST BY LOGGED-IN USER IN "SCROLL" PAGE */}
-              {authState.userProfile?.userId?.profilePicture && (
-                <img
-                  className={styles.userProfile}
-                  src={mediaUrl(authState.userProfile.userId.profilePicture)}
-                  alt="Your profile"
-                />
-              )}
-              <textarea onChange={(e) => setPostContent(e.target.value)} value={postContent}
-                placeholder={"What's in your mind?"} className={styles.textAreaOfContent} name="" id="">
-
-              </textarea>
-
-              {/* THIS PLUS(+) ICON IS A LABEL FOR THE FILE INPUT FIELD, 
-            SO WHEN IT IS CLICKED THE FILE INPUT FIELD IS TRIGGERED */}
-              <label htmlFor="fileUpload">
-                <div className={styles.Fab}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
+              <div className={styles.composerIdentity}>
+                {authState.userProfile?.userId?.profilePicture ? (
+                  <img className={styles.userProfile} src={mediaUrl(authState.userProfile.userId.profilePicture)} alt="Your profile" />
+                ) : (
+                  <div className={styles.profilePlaceholder} aria-hidden="true">{authState.userProfile?.userId?.name?.charAt(0) || "Y"}</div>
+                )}
+                <div className={styles.composerDetails}><strong>Share an update</strong><span>Start a conversation with your network</span></div>
+              </div>
+              <textarea
+                onChange={(e) => setPostContent(e.target.value)}
+                value={postContent}
+                placeholder="What's on your mind?"
+                className={styles.textAreaOfContent}
+                aria-label="Write a post"
+              />
+              <div className={styles.composerFooter}>
+                <div className={styles.attachmentControl}>
+                  <label htmlFor="fileUpload" className={styles.attachButton}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Add media
+                  </label>
+                  {fileContent && <span className={styles.fileName}>{fileContent.name}</span>}
                 </div>
-              </label>
-              {/* INPUT FIELD TO ATTACH FILES IN POST */}
-              <input onChange={(e) => setFileContent(e.target.files?.[0] ?? null)}
-                type="file" hidden id='fileUpload' />
-
-              {/* ACTION IS CALLED, POST GETS SAVED IN DB AND CREATED IN FRONTEND WHEN THIS BTN IS CLICKED */}
-              {postContent.length > 0 &&
-                <div onClick={handleUpload} className={styles.uploadButton}>Post</div>
-              }
-
+                <input onChange={(e) => setFileContent(e.target.files?.[0] ?? null)} type="file" hidden id="fileUpload" />
+                {postContent.length > 0 && (
+                  <button type="button" onClick={handleUpload} className={styles.uploadButton}>Post</button>
+                )}
+              </div>
             </div>
 
             {/* FEED SECTION - SHOW ALL POSTS */}
@@ -190,8 +188,8 @@ function Dashboard() {
 
                         </div>
 
-                        <p style={{ color: "grey" }}>@{post.userId.username}</p>
-                        <p style={{ paddingTop: "1rem" }}>{post.body}</p>
+                        <p className={styles.postMeta}>@{post.userId.username}</p>
+                        <p className={styles.postBody}>{post.body}</p>
 
                         {post.media && (
                           /\.(mp4|webm|mov)$/i.test(post.media) ? (

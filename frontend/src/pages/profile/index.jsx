@@ -141,20 +141,20 @@ export default function ProfilePage() {
 
                 {/* RENDER THIS COMPONENT ONLY WHEN PROFILE DATA IS LOADED */}
                 {userProfile && userProfile.userId ? (
-                    <div className={styles.container}>
+                    <main className={styles.container}>
 
                         {/* TOP SECTION OF PROFILE PAGE - BACKDROP + PROFILE PICTURE */}
                         <div className={styles.backDropContainer}>
 
                             {/* TO EDIT PROFILE PICTURE */}
                             <label htmlFor='profilePictureUpload' className={styles.backDrop_overlay}>
-                                <p>Edit</p>
+                                <span>Edit photo</span>
                             </label>
                             <input
                                 onChange={(e) => {
-                                    updateProfilePicture(e.target.files[0])
+                                    updateProfilePicture(e.target.files?.[0])
                                 }}
-                                hidden type="file" id="profilePictureUpload"
+                                hidden type="file" accept="image/*" id="profilePictureUpload"
                             />
                             <img src={mediaUrl(userProfile.userId?.profilePicture)} alt="Profile" />
 
@@ -163,14 +163,14 @@ export default function ProfilePage() {
                         <div className={styles.profileContainer_details}>
 
                             {/* TWO-COLUMN LAYOUT: LEFT (USER INFO + WORK HISTORY) & RIGHT (RECENT ACTIVITY) */}
-                            <div style={{ display: "flex", gap: "1.5rem" }}>
+                            <div className={styles.profileColumns}>
 
                                 {/* LEFT COLUMN */}
-                                <div style={{ flex: "0.7" }}>
+                                <div className={styles.profileMain}>
 
                                     {/* USER DETAILS - NAME, USERNAME, BIO */}
                                     <div className={styles.nameRow} >
-                                        <input   // IT IS A FORM FIELD SO IT IS EDITABLE. CLICK ON IT AND START EDITING -> CLICK ON UPDATE BTN TO SAVE CHANGESS
+                                        <input aria-label="Your name"   // IT IS A FORM FIELD SO IT IS EDITABLE. CLICK ON IT AND START EDITING -> CLICK ON UPDATE BTN TO SAVE CHANGESS
                                             className={styles.nameEdit}
                                             value={userProfile.userId?.name || ""}
                                             onChange={(e) => {
@@ -186,15 +186,16 @@ export default function ProfilePage() {
                                     </div>
 
                                     {/* USER'S BIO SECTION */}
-                                    <div style={{ marginBottom: "1.5rem", width: "100%", boxSizing: "border-box", maxWidth: "600px" }}>
-
+                                    <div className={styles.bioSection}>
                                         <textarea
+                                            className={styles.bioEditor}
                                             value={userProfile.bio || ""}
                                             onChange={(e) => {
                                                 setUserProfile({ ...userProfile, bio: e.target.value });
                                             }}
-                                            rows={Math.max(3, Math.ceil(userProfile.bio.length / 80))}
-                                            style={{width: "100%"}}
+                                            rows={Math.max(3, Math.ceil((userProfile.bio || "").length / 80))}
+                                            placeholder="Write a short introduction about yourself"
+                                            aria-label="Your introduction"
 
                                         />
 
@@ -268,13 +269,13 @@ export default function ProfilePage() {
                                     {/* UPDATE BUTTON TO UPDATE/REFRESH UI WHEN LOGGED-IN USER EDITS/UPDATES ANY FIELD OF HIS PROFILE PAGE */}
                                     {/* BUTTON GETS VISIBLE TO LOGGED-IN USER ONLY WHEN HE EDITS/UPDATES ANY FIELD IN HIS PROFILE PAGE */}
                                     {authState.userProfile && JSON.stringify(userProfile) !== JSON.stringify(authState.userProfile) && (
-                                        <div
+                                        <button type="button"
                                             onClick={() => {
                                                 updateProfileData()
                                             }}
                                             className={styles.updateProfileBtn}>
                                             Update Profile
-                                        </div>
+                                        </button>
                                     )}
 
                                 </div>
@@ -308,7 +309,7 @@ export default function ProfilePage() {
                             </div>
 
                         </div>
-                    </div>
+                    </main>
                 ) : (
                     <p style={{ padding: "2rem" }}>Loading profile...</p>
                 )}

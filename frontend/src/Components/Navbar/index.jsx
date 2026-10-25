@@ -1,105 +1,57 @@
-import React, { useEffect } from 'react'
-import styles from "./styles.module.css"
-import { useRouter } from 'next/router'
-import { useDispatch, useSelector } from 'react-redux'
-import { reset } from '@/config/redux/reducer/authReducer'  // USED FOR LOGOUT 
-import { getNotifications } from '@/config/redux/action/notificationAction'
-
+import React, { useEffect } from "react";
+import styles from "./styles.module.css";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
+import { reset } from "@/config/redux/reducer/authReducer";
+import { getNotifications } from "@/config/redux/action/notificationAction";
 
 function NavbarComponent() {
+  const router = useRouter();
+  const authState = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const notifications = useSelector((state) => state.notification.notifications);
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
-    const router = useRouter()
-    const authState = useSelector((state) => state.auth)
-    const dispatch = useDispatch();
+  useEffect(() => {
+    if (authState.profileFetched) {
+      const token = localStorage.getItem("token");
+      if (token) dispatch(getNotifications({ token }));
+    }
+  }, [authState.profileFetched, dispatch]);
 
-    const notificationState = useSelector((state) => state.notification);
-    const notifications = notificationState.notifications;  // THIS ARRAY CONTAINS ALL THE NOTIFICATIONS DATA 
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    dispatch(reset());
+  };
 
-    // Calculate unread count - ONLY COUNT THOSE NOTIFICATION DOCS WHERE ISREAD VALUE = FALSE
-    const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  return (
+    <header className={styles.header}>
+      <nav className={styles.navBar} aria-label="Main navigation">
+        <button type="button" className={styles.brand} onClick={() => router.push("/")} aria-label="ProConnect home">
+          <span className={styles.brandName}><span>Pro</span>Connect</span>
+        </button>
 
-    // Dispatch getNotifications() action when the logged-in navbar loads
-    useEffect(() => {
-
-        if (authState.profileFetched) {
-            const token = localStorage.getItem("token");
-
-            if (token) {
-                dispatch(getNotifications({ token }));
-            }
-        }
-    }, [authState.profileFetched, dispatch])
-
-
-
-
-    return (
-
-        <div className={styles.container}>
-
-            <nav className={styles.navBar}>
-
-                <h1
-                    className={styles.title}
-                    onClick={() => { router.push("/") }}>ProConnect</h1>
-
-                <div className={styles.navBarOptionContainer}>
-
-                    {authState.profileFetched && <div>
-
-                        <div style={{ display: "flex", gap: "1.2rem" }}>
-
-                            {/* NOTIFICATIONS */}
-                            <div className={styles.notificationWrapper}>
-                                <span className={styles.bell}
-                                    onClick={() => {
-                                        router.push("/notifications")
-                                    }}
-                                >
-                                    🔔
-                                </span>
-                                <span>Notifications</span>
-
-                                {unreadCount > 0 && (
-                                    <span className={styles.notificationCount}>
-                                        {unreadCount}
-                                    </span>
-                                 
-                                )}
-
-                            </div>
-
-                            {/* PROFILE */}
-                            <p onClick={() => {
-                                router.push("/profile")
-                            }} className={styles.navbarOption} >Profile</p>
-
-                            {/* LOGOUT OPTION */}
-                            <p onClick={() => {
-                                localStorage.removeItem("token")
-                                router.push("/login")
-                                dispatch(reset())
-                            }}
-                                className={styles.navbarOption} >Logout</p>
-
-                        </div>
-
-                    </div>}
-
-                    {!authState.profileFetched && <div onClick={() => {
-                        router.push("/login")
-                    }}
-                        className={styles.buttonJoin}>
-                        <p>Be a Part</p>
-                    </div>}
-
-
-                </div>
-
-            </nav>
-
-        </div>
-    )
+        {authState.profileFetched ? (
+          <div className={styles.accountActions}>
+            <button type="button" className={`${styles.navAction} ${router.pathname === "/notifications" ? styles.navActionActive : ""}`} onClick={() => router.push("/notifications")}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+              <span>Notifications</span>
+              {unreadCount > 0 && <span className={styles.notificationCount}>{unreadCount}</span>}
+            </button>
+            <button type="button" className={`${styles.navAction} ${router.pathname === "/profile" ? styles.navActionActive : ""}`} onClick={() => router.push("/profile")}>Profile</button>
+            <span className={styles.navDivider} />
+            <button type="button" className={styles.logoutButton} onClick={logout}>Log out</button>
+          </div>
+        ) : (
+          <div className={styles.accountActions}>
+            <button type="button" className={styles.signInLink} onClick={() => router.push("/login")}>Sign in</button>
+            <button type="button" className={styles.joinButton} onClick={() => router.push("/login")}>Join now</button>
+          </div>
+        )}
+      </nav>
+    </header>
+  );
 }
 
-export default NavbarComponent
+export default NavbarComponent;

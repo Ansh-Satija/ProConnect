@@ -78,15 +78,13 @@ function LoginComponent() {
   return (
     <UserLayout>
       <div className={styles.container}>
-
-
         <div className={styles.cardContainer}>
+          <section className={styles.cardContainer_left}>
+            <div className={styles.formIntro}>
+              <h1 className={styles.cardleft_heading}>{userLoginMethod ? "Welcome back" : "Create your account"}</h1>
+            </div>
 
-
-          <div className={styles.cardContainer_left}>
-            <p className={styles.cardleft_heading}> {userLoginMethod ? "Sign In" : "Sign Up"} </p>
-
-            <p style={{color: authState.isError ? "red" : "green"}}>{statusMessage}</p>
+            {statusMessage && <p role="status" className={`${styles.statusMessage} ${authState.isError ? styles.error : styles.success}`}>{statusMessage}</p>}
 
             <div className={styles.inputContainers}>
 
@@ -100,10 +98,10 @@ function LoginComponent() {
               }
 
               {/* EMAIL AND PASSWORD FIELDS ARE REQUIRED IN BOTH SIGNUP AND LOGIN FORMS */}
-              <input value={email} autoComplete="off" onChange={(e) => setEmailAddress(e.target.value)} className={styles.inputField} type="text" placeholder='Email' />
-              <input value={password} autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} className={styles.inputField} type="password" placeholder='Password' />
+              <input value={email} autoComplete="email" onChange={(e) => setEmailAddress(e.target.value)} className={styles.inputField} type="email" placeholder='Email address' aria-label="Email address" />
+              <input value={password} autoComplete={userLoginMethod ? "current-password" : "new-password"} onChange={(e) => setPassword(e.target.value)} className={styles.inputField} type="password" placeholder='Password' aria-label="Password" />
 
-              <div onClick={() => {
+              <button type="button" onClick={() => {
                  if(userLoginMethod){
                    handleLogin();
                  }
@@ -111,31 +109,28 @@ function LoginComponent() {
                    handleRegister();
                  }
                 }}
-                className={styles.buttonWithOutline}>
-                <p> {userLoginMethod ? "Sign In" : "Sign Up"} </p>
-              </div>
+                className={styles.primaryButton}>
+                {userLoginMethod ? "Sign in" : "Create account"}
+              </button>
               
             </div>
 
-          </div>
+          </section>
 
 
           {/* RIGHT SIDE */}
-          <div className={styles.cardContainer_right}>
-            
-
-              {userLoginMethod ? <p>Don't Have an Account? </p> : <p>Already Have an Account?</p>}
-              <div onClick={() => {
+          <aside className={styles.cardContainer_right}>
+              <h2 className={styles.sideHeading}>Your next connection starts here.</h2>
+              <div className={styles.switchPrompt}>
+                <p>{userLoginMethod ? "New to ProConnect?" : "Already have an account?"}</p>
+                <button type="button" onClick={() => {
                   setUserLoginMethod(!userLoginMethod)
                 }}
-                
-                style={{color: "black", textAlign: "center"}}
-                className={styles.buttonWithOutline}>
-                  <p> {userLoginMethod ? "Sign Up" : "Sign In"} </p>
-                </div>
-
-
-          </div>
+                className={styles.switchButton}>
+                  {userLoginMethod ? "Create an account" : "Sign in"}
+                </button>
+              </div>
+          </aside>
 
 
         </div>

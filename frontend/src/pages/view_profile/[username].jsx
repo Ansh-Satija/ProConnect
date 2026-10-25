@@ -1,7 +1,6 @@
 import { clientServer, mediaUrl } from '@/config';
 import DashboardLayout from '@/layout/DashbaordLayout';
 import UserLayout from '@/layout/UserLayout';
-import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import styles from "./index.module.css"
 import { useRouter } from 'next/router';
@@ -72,8 +71,6 @@ export default function ViewProfilePage({ userProfile }) {
   }, [])
 
 
-  const searchParameters = useSearchParams();
-
   useEffect(() => {
     console.log("From View: View Profile")
   })
@@ -97,14 +94,14 @@ export default function ViewProfilePage({ userProfile }) {
             <div className={styles.profileContainer_flex}>
 
               {/* LEFT SECTION OF USER DETAILS */}
-              <div style={{ flex: "0.7" }}>
+                <div className={styles.profileMain}>
 
-                <div style={{ display: "flex", width: "fit-content", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-                  <h2>{userProfile.userId.name}</h2>
-                  <p style={{ color: "grey" }}>@{userProfile.userId.username}</p>
+                <div className={styles.profileTitleRow}>
+                  <h1>{userProfile.userId.name}</h1>
+                  <p>@{userProfile.userId.username}</p>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", marginBottom: "1rem" }}>
+                <div className={styles.profileActions}>
 
                   {/* TO DISPLAY CONNECT BTN IF NOT A CONNECTION AND CONNECTED BTN IF IT IS A CONNECTION */}
                   {authState.userProfile && !isOwnProfile && (isCurrentUserInConnection ?
@@ -123,7 +120,7 @@ export default function ViewProfilePage({ userProfile }) {
                   )}
 
                   {/* DOWNLOAD PROFILE AS RESUME BUTTON */}
-                  <div
+                  <button type="button"
                     className={styles.resumeButton}
                     onClick={async () => {
                       try {
@@ -140,18 +137,17 @@ export default function ViewProfilePage({ userProfile }) {
                         window.alert(error.response?.data?.message || "Could not download this resume. Please sign in and try again.");
                       }
                     }}
-                    style={{ cursor: "pointer" }}
                   >
-                    <svg style={{ width: "1.2em" }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
-
-                  </div>
+                    <span>Download resume</span>
+                  </button>
 
                 </div>
 
-                <div>
-                  <p>{userProfile.bio}</p>
+                <div className={styles.profileIntro}>
+                  <p>{userProfile.bio || "No introduction has been added yet."}</p>
                 </div>
 
               </div>
@@ -162,6 +158,7 @@ export default function ViewProfilePage({ userProfile }) {
                 <h3>Recent Activity</h3>
 
                 {/* POST = STATE VARIABLE CONTAINING ALL THE POSTS OF CURRENT USER ONLY */}
+                {userPosts.length === 0 && <p className={styles.emptyActivity}>No recent posts to show.</p>}
                 {userPosts.map((post) => {
 
                   return (
