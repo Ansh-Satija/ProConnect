@@ -1,5 +1,5 @@
 import { getAboutUser, getAllUsers } from '@/config/redux/action/authAction';
-import { createPost, deletePost, getAllComments, getAllPosts, incrementPostLike, postComment } from '@/config/redux/action/postAction';
+import { createPost, deleteComment, deletePost, getAllComments, getAllPosts, incrementPostLike, postComment } from '@/config/redux/action/postAction';
 import DashboardLayout from '@/layout/DashbaordLayout';
 import UserLayout from '@/layout/UserLayout';
 import { useRouter } from 'next/router'
@@ -319,15 +319,30 @@ function Dashboard() {
                     return (
                       <div className={styles.singleComment} key={comment._id}>
 
-                        <div className={styles.singleComment_profileContainer}>
-
-                          {/* Add a commenter's profile image here if needed. */}
-
-                          <div>
-                            <p style={{ fontWeight: "bold", fontSize: "1rem" }}>{comment.userId.name}</p>
-                            <p> @{comment.userId.username}</p>
+                        <div className={styles.commentHeader}>
+                          <div className={styles.singleComment_profileContainer}>
+                            <div>
+                              <p style={{ fontWeight: "bold", fontSize: "1rem" }}>{comment.userId.name}</p>
+                              <p> @{comment.userId.username}</p>
+                            </div>
                           </div>
-
+                          {comment.userId?._id === authState.userProfile?.userId?._id && (
+                            <button
+                              type="button"
+                              className={styles.deleteCommentButton}
+                              onClick={async () => {
+                                const resultAction = await dispatch(deleteComment({ comment_id: comment._id }));
+                                if (deleteComment.fulfilled.match(resultAction)) {
+                                  await dispatch(getAllComments({ post_id: postState.postId }));
+                                  await dispatch(getAllPosts());
+                                } else {
+                                  window.alert(resultAction.payload || "Could not delete comment.");
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
 
                         <p>

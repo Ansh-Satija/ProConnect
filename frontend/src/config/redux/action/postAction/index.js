@@ -113,6 +113,25 @@ export const getAllComments = createAsyncThunk(
     }
 )
 
+export const deleteComment = createAsyncThunk(
+    "post/deleteComment",
+    async (commentData, thunkAPI) => {
+        try {
+            const response = await clientServer.delete("/delete_comment", {
+                data: {
+                    token: localStorage.getItem("token"),
+                    comment_id: commentData.comment_id
+                }
+            });
+
+            return thunkAPI.fulfillWithValue(response.data);
+        }
+        catch (err) {
+            return thunkAPI.rejectWithValue(err.response?.data?.message || "Could not delete comment.");
+        }
+    }
+)
+
 export const postComment = createAsyncThunk(
     "post/postComment", 
     async (commentData, thunkAPI) => {
