@@ -1,6 +1,5 @@
 import { clientServer, mediaUrl } from '@/config';
 import { getAboutUser } from '@/config/redux/action/authAction';
-import { getAllPosts } from '@/config/redux/action/postAction';
 import UserLayout from '@/layout/UserLayout'
 import DashboardLayout from '@/layout/DashbaordLayout';
 import React, { useState, useEffect } from 'react'
@@ -11,12 +10,13 @@ import styles from "./index.module.css"
 export default function ProfilePage() {
 
     const authState = useSelector((state) => state.auth)
-    const postReducer = useSelector((state) => state.postReducer)
 
     const dispatch = useDispatch();
 
     const [userProfile, setUserProfile] = useState({});
     const [userPosts, setUserPosts] = useState([])
+    const [nextCursor, setNextCursor] = useState(null)
+    const [postsLoading, setPostsLoading] = useState(false)
 
     // TO TRACK IF POPUP WINDOW FOR ADDING WORK HISTORY IS OPEN OR NOT
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,7 +50,6 @@ export default function ProfilePage() {
         const token = localStorage.getItem("token");
         if (token) {
             dispatch(getAboutUser({ token }));
-            dispatch(getAllPosts());
         }
     }, [dispatch])
 
@@ -60,18 +59,28 @@ export default function ProfilePage() {
         }
     }, [authState.userProfile])
 
-    useEffect(() => {
-        if (userProfile?.userId?._id && Array.isArray(postReducer?.posts)) {
-            const myPosts = postReducer.posts.filter((post) => {
-                return post?.userId && (
-                    post.userId?._id === userProfile.userId._id ||
-                    post.userId === userProfile.userId._id ||
-                    post.userId?.username === userProfile.userId.username
-                );
+    const loadUserPosts = async (cursor = null, reset = false) => {
+        if (postsLoading || !userProfile?.userId?.username) return;
+        setPostsLoading(true);
+        try {
+            const response = await clientServer.get("/user_posts", {
+                params: { username: userProfile.userId.username, cursor, token: localStorage.getItem("token") }
             });
-            setUserPosts(myPosts);
+            setUserPosts(current => reset ? response.data.posts : [...current, ...response.data.posts]);
+            setNextCursor(response.data.nextCursor);
+        } catch (error) {
+            console.error("Could not load profile posts:", error.response?.data || error);
+        } finally {
+            setPostsLoading(false);
         }
-    }, [postReducer?.posts, userProfile?.userId?._id, userProfile?.userId?.username])
+    }
+
+    useEffect(() => {
+        if (!userProfile?.userId?.username) return;
+        setUserPosts([]);
+        setNextCursor(null);
+        loadUserPosts(null, true);
+    }, [userProfile?.userId?.username])
 
     // TO EDIT PROFILE PICTURE OF LOGGED-IN USER
     const updateProfilePicture = async (file) => {
@@ -285,6 +294,7 @@ export default function ProfilePage() {
                                     <h3>Recent Activity</h3>
 
                                     {/* POST = STATE VARIABLE CONTAINING ALL THE POSTS OF CURRENT USER ONLY */}
+                                    <div className={styles.activityList}>
                                     {userPosts.map((post, index) => {
                                         return (
                                             <div key={post?._id || index} className={styles.postCard}>
@@ -293,7 +303,7 @@ export default function ProfilePage() {
 
                                                     <div className={styles.card_profileContainer}>
                                                         {post?.media ? <img src={mediaUrl(post.media)}
-                                                            className={styles.postImage} alt="" />
+                                                            className={styles.postImage} alt="" loading="lazy" decoding="async" />
                                                             :
                                                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                                                         }
@@ -304,6 +314,10 @@ export default function ProfilePage() {
                                             </div>
                                         )
                                     })}
+                                    {nextCursor && <button type="button" disabled={postsLoading} onClick={() => loadUserPosts(nextCursor)}>
+                                        {postsLoading ? "Loading…" : "Load more"}
+                                    </button>}
+                                    </div>
                                 </div>
 
                             </div>

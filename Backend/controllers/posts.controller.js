@@ -44,8 +44,33 @@ export const createPost = async (req, res) => {
 export const getAllPosts = async (req, res) => {
 
     try {
-        const posts = await Post.find().populate('userId', 'name username profilePicture');
+        // const posts = await Post.find().populate('userId', 'name username profilePicture');
+        // const postIds = posts.map(post => post._id);
+
+        const limit = 10;
+        const { cursor } = req.query;
+        const filter = {};
+        if (cursor) {
+            const [createdAt, id] = cursor.split("|");
+            const cursorDate = new Date(createdAt);
+            if (!id || Number.isNaN(cursorDate.getTime())) return res.status(400).json({ message: "Invalid cursor" });
+            filter.$or = [
+                { createdAt: { $lt: cursorDate } },
+                { createdAt: cursorDate, _id: { $lt: id } }
+            ];
+        }
+
+        const docs = await Post.find(filter)
+            .sort({ createdAt: -1, _id: -1 })   // newest first
+            .limit(limit + 1)                   // ask for one extra to know if more exist
+            .populate('userId', 'name username profilePicture');
+
+        const hasMore = docs.length > limit;
+        const posts = hasMore ? docs.slice(0, limit) : docs;          // throw away the extra one
+        const lastPost = posts[posts.length - 1];
+        const nextCursor = hasMore ? `${lastPost.createdAt.toISOString()}|${lastPost._id}` : null;
         const postIds = posts.map(post => post._id);
+
         const [likes, commentCounts] = await Promise.all([
             Like.find({ userId: req.user._id, postId: { $in: postIds } }).select('postId'),
             Comment.aggregate([
@@ -60,12 +85,64 @@ export const getAllPosts = async (req, res) => {
             posts: posts.map(post => ({
                 ...post.toObject(),
                 likedByCurrentUser: likedPostIds.has(post._id.toString()),
-                commentsCount: commentsByPostId.get(post._id.toString()) ?? 0
-            }))
+                commentsCount: commentsByPostId.get(post._id.toString()) ?? 0,
+            })),
+            nextCursor
         });
     }
 
     catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+}
+
+// Fetch one profile's posts independently of the global feed, newest first.
+export const getPostsByUsername = async (req, res) => {
+    try {
+        const { username, cursor } = req.query;
+        if (!username) return res.status(400).json({ message: "Username is required" });
+
+        const user = await User.findOne({ username }).select("_id");
+        if (!user) return res.status(404).json({ message: "User Not Found" });
+
+        const limit = 10;
+        const filter = { userId: user._id };
+        if (cursor) {
+            const [createdAt, id] = cursor.split("|");
+            const cursorDate = new Date(createdAt);
+            if (!id || Number.isNaN(cursorDate.getTime())) return res.status(400).json({ message: "Invalid cursor" });
+            filter.$or = [
+                { createdAt: { $lt: cursorDate } },
+                { createdAt: cursorDate, _id: { $lt: id } }
+            ];
+        }
+
+        const docs = await Post.find(filter)
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(limit + 1)
+            .populate("userId", "name username profilePicture");
+        const hasMore = docs.length > limit;
+        const posts = hasMore ? docs.slice(0, limit) : docs;
+        const postIds = posts.map(post => post._id);
+        const [likes, commentCounts] = await Promise.all([
+            Like.find({ userId: req.user._id, postId: { $in: postIds } }).select("postId"),
+            Comment.aggregate([
+                { $match: { postId: { $in: postIds } } },
+                { $group: { _id: "$postId", count: { $sum: 1 } } }
+            ])
+        ]);
+        const likedPostIds = new Set(likes.map(like => like.postId.toString()));
+        const commentsByPostId = new Map(commentCounts.map(item => [item._id.toString(), item.count]));
+
+        return res.json({
+            posts: posts.map(post => ({
+                ...post.toObject(),
+                likedByCurrentUser: likedPostIds.has(post._id.toString()),
+                commentsCount: commentsByPostId.get(post._id.toString()) ?? 0,
+            })),
+            nextCursor: hasMore ? `${posts[posts.length - 1].createdAt.toISOString()}|${posts[posts.length - 1]._id}` : null,
+        });
+    } catch (err) {
         return res.status(500).json({ message: err.message });
     }
 }

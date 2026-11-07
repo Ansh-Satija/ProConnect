@@ -6,12 +6,12 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 export const getAllPosts = createAsyncThunk(
     "post/getAllPosts",
 
-    async (_, thunkAPI) => {
+    async (opts = {}, thunkAPI) => {
 
         try {
 
             const response = await clientServer.get("/posts", {
-                params: { token: localStorage.getItem("token") }
+                params: { token: localStorage.getItem("token"), cursor: opts.cursor }
             })
 
             return thunkAPI.fulfillWithValue(response.data);

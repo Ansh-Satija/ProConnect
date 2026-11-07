@@ -1,6 +1,6 @@
 import {Router} from "express"
 
-import { activeCheck, createPost, getAllPosts, deletePost, commentPost, getCommentsByPost, deleteComment,
+import { activeCheck, createPost, getAllPosts, getPostsByUsername, deletePost, commentPost, getCommentsByPost, deleteComment,
      incrementLikes } from "../controllers/posts.controller.js";
      
 // import {getMyComments} from "../controllers/posts.controller.js" (FOR FUTURE SCOPE)
@@ -24,6 +24,7 @@ router.route("/post").post(uploadPostMedia.single('media'), authenticateUser, cr
 
 // GET ALL POSTS
 router.route("/posts").get(authenticateUser, getAllPosts);
+router.route("/user_posts").get(authenticateUser, getPostsByUsername);
 
 // DELETE A POST (ONLY THE AUTHOR CAN DELETE OWN POST)
 router.route("/delete_post").delete(authenticateUser, deletePost);

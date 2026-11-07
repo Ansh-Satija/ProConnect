@@ -3,7 +3,7 @@ import { createPost, deleteComment, deletePost, getAllComments, getAllPosts, inc
 import DashboardLayout from '@/layout/DashbaordLayout';
 import UserLayout from '@/layout/UserLayout';
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import styles from "./index.module.css"
 import { mediaUrl } from '@/config';
@@ -19,6 +19,24 @@ function Dashboard() {
   // client-side hydration/update). Keep the view safe until posts are loaded.
   const postState = useSelector((state) => state.postReducer);
   const posts = postState.posts;
+
+  // FOR PAGINATION
+  const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !postState.nextCursor || postState.isLoading) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        dispatch(getAllPosts({ cursor: postState.nextCursor }));
+      }
+    }, { rootMargin: "300px" });   // start loading 300px BEFORE the user reaches the bottom
+
+    observer.observe(el);
+    return () => observer.disconnect();   // cleanup: remove old observer before making a new one
+  }, [postState.nextCursor, postState.isLoading]);
+
 
 
 
@@ -52,7 +70,6 @@ function Dashboard() {
         post_id: postId,
         token: localStorage.getItem("token")
       }));
-      await dispatch(getAllPosts());
     } finally {
       setPendingLikePostIds((current) => {
         const next = new Set(current);
@@ -79,7 +96,6 @@ function Dashboard() {
       return;
     }
 
-    dispatch(getAllPosts())
   }
 
   // TO SCROLL TO A SPECIFIC POST WHEN USER GETS NOTIFICATION THAT SOMEONE HAS LIKED/ COMMENTED ON THEIR POST (FOR LIKE/ COMMENT)
@@ -154,7 +170,7 @@ function Dashboard() {
                     <div className={styles.singleCard_profileContainer}>
 
                       {/* USER PROFILE PICTURE */}
-                      <img className={styles.userProfile} src={mediaUrl(post.userId.profilePicture)} alt="" />
+                      <img className={styles.userProfile} src={mediaUrl(post.userId.profilePicture)} alt="" loading="lazy" decoding="async" />
                       <div className={styles.singleCard_content}>
 
                         <div style={{
@@ -176,8 +192,7 @@ function Dashboard() {
                               onClick={async () => {
                                 await dispatch(deletePost({
                                   post_id: post._id
-                                })),
-                                  await dispatch(getAllPosts())
+                                }))
                               }}
                               style={{ cursor: "pointer" }}>
                               <svg style={{ height: "1.2em", color: "red" }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -197,6 +212,7 @@ function Dashboard() {
                               className={styles.singleCard_image}
                               src={mediaUrl(post.media)}
                               controls
+                              preload="metadata"
                               style={{ maxWidth: "100%" }}
                             />
                           ) : /\.(jpe?g|png|gif|webp)$/i.test(post.media) ? (
@@ -204,6 +220,8 @@ function Dashboard() {
                               <img
                                 src={mediaUrl(post.media)}
                                 alt="Uploaded post media"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </div>
                           ) : (
@@ -242,9 +260,8 @@ function Dashboard() {
 
                           {/* COMMENT BUTTON */}
                           <div
-                            onClick={ () => {
-                               dispatch(getAllComments({ post_id: post._id }))
-                               dispatch(getAllPosts())   // refreshes commentsCount on the feed
+                            onClick={() => {
+                              dispatch(getAllComments({ post_id: post._id }))
                             }}
                             className={styles.singleOption_optionsContainer}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -281,6 +298,11 @@ function Dashboard() {
                 )
 
               })}
+
+              {/* FOR PAGINATION */}
+              {postState.nextCursor && <div ref={sentinelRef} style={{ height: 1 }} />}
+              {postState.isLoading && posts.length > 0 && <div className={styles.spinner} />}
+              {/* {!postState.nextCursor && postState.postFetched && <p>You're all caught up</p>} */}
 
             </div>
           </div>
@@ -334,7 +356,6 @@ function Dashboard() {
                                 const resultAction = await dispatch(deleteComment({ comment_id: comment._id }));
                                 if (deleteComment.fulfilled.match(resultAction)) {
                                   await dispatch(getAllComments({ post_id: postState.postId }));
-                                  await dispatch(getAllPosts());
                                 } else {
                                   window.alert(resultAction.payload || "Could not delete comment.");
                                 }
@@ -380,7 +401,6 @@ function Dashboard() {
                     await dispatch(getAllComments({
                       post_id: postState.postId,
                     }))
-                    await dispatch(getAllPosts())   // refreshes commentsCount on the feed
                   }}
                   className={styles.postCommentContainer_commentBtn}
                 >

@@ -5,28 +5,43 @@ import React, { useEffect, useState } from 'react'
 import styles from "./index.module.css"
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPosts } from '@/config/redux/action/postAction';
 import { getAboutUser, getConnectionRequest, getMyConnectionRequests, sendConnectionRequest } from '@/config/redux/action/authAction';
 
 export default function ViewProfilePage({ userProfile }) {
 
   const router = useRouter();
-  const postReducer = useSelector((state) => state.postReducer)
   const dispatch = useDispatch();
 
   const authState = useSelector((state) => state.auth)
   const isOwnProfile = authState.userProfile?.userId?._id?.toString() === userProfile.userId?._id?.toString();
 
   const [userPosts, setUserPosts] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [postsLoading, setPostsLoading] = useState(false);
 
   const [isCurrentUserInConnection, setIsCurrentUserInConnection] = useState(false);
 
   const [isConnectionNull, setIsConnectionNull] = useState(true);
 
 
+  const loadUserPosts = async (cursor = null, reset = false) => {
+    if (postsLoading) return;
+    setPostsLoading(true);
+    try {
+      const response = await clientServer.get("/user_posts", {
+        params: { username: userProfile.userId.username, cursor, token: localStorage.getItem("token") }
+      });
+      setUserPosts(current => reset ? response.data.posts : [...current, ...response.data.posts]);
+      setNextCursor(response.data.nextCursor);
+    } catch (error) {
+      console.error("Could not load profile posts:", error.response?.data || error);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
   const getUsersPost = async () => {
     const token = localStorage.getItem("token");
-    await dispatch(getAllPosts());
     await dispatch(getConnectionRequest({
       token
     }))
@@ -37,16 +52,7 @@ export default function ViewProfilePage({ userProfile }) {
     await dispatch(getAboutUser({ token }));
   }
 
-  // RETURN ALL POSTS OF CURRENT USER TO DISPLAY IN THAT USER'S PROFILE PAGE
-  useEffect(() => {
-
-    const posts = postReducer.posts.filter((post) => {
-      return post.userId.username === router.query.username;
-    });
-
-    setUserPosts(posts);
-
-  }, [postReducer.posts, router.query.username]);
+  // Fetch this profile's posts directly so newer posts are not hidden by the global feed limit.
 
   useEffect(() => {
     const connection = authState.connections.find(
@@ -67,8 +73,13 @@ export default function ViewProfilePage({ userProfile }) {
 
 
   useEffect(() => {
-    getUsersPost();
-  }, [])
+    if (!router.isReady || !userProfile?.userId?.username) return;
+    setUserPosts([]);
+    setNextCursor(null);
+    loadUserPosts(null, true);
+  }, [router.isReady, userProfile?.userId?.username]);
+
+  useEffect(() => { getUsersPost(); }, [])
 
 
   useEffect(() => {
@@ -158,6 +169,7 @@ export default function ViewProfilePage({ userProfile }) {
                 <h3>Recent Activity</h3>
 
                 {/* POST = STATE VARIABLE CONTAINING ALL THE POSTS OF CURRENT USER ONLY */}
+                <div className={styles.activityList}>
                 {userPosts.length === 0 && <p className={styles.emptyActivity}>No recent posts to show.</p>}
                 {userPosts.map((post) => {
 
@@ -168,7 +180,7 @@ export default function ViewProfilePage({ userProfile }) {
 
                         <div className={styles.card_profileContainer}>
 
-                          {post.media ? <img src={mediaUrl(post.media)} alt="Post attachment" />
+                          {post.media ? <img src={mediaUrl(post.media)} alt="Post attachment" loading="lazy" decoding="async" />
                             :
                             <div style={{ width: "3.4rem", height: "3.4rem" }}></div>
                           }
@@ -180,6 +192,10 @@ export default function ViewProfilePage({ userProfile }) {
                     </div>
                   )
                 })}
+                {nextCursor && <button type="button" disabled={postsLoading} onClick={() => loadUserPosts(nextCursor)}>
+                  {postsLoading ? "Loading…" : "Load more"}
+                </button>}
+                </div>
 
               </div>
 
